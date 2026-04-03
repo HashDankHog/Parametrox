@@ -11,7 +11,8 @@ place.add_command(label="NAND",command=update.set_nand)
 place.add_command(label="Output",command=update.set_output)
 place.add_command(label="Input",command=update.set_input)
 
-menu_screen.add_command(label="update",command=update.update)
+menu_screen.add_command(label="run",command=update.run)
+menu_screen.add_command(label="stop",command=update.stop)
 
 canvas.root.config(menu=menu_screen)
 canvas.root.mainloop()

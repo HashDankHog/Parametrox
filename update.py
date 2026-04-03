@@ -1,11 +1,14 @@
+from math import *
+import threading
+import time
 import draw
 import gates
 import canvas
-from math import *
-event_type="nand"
+event_type="path"
 path_input=0
 path_output=0
 input=1
+running=False
 def set_nand():
     global event_type
     event_type = "nand"
@@ -15,19 +18,17 @@ def set_output():
 def set_input():
     global event_type
     event_type = "input"
-def flip():
-    global event_type
-    if event_type =="nand":
-        event_type="path"
-    else:
-        event_type="nand"
+
 def place(event):
+    
     x=event.x
     y=event.y
     global event_type
     global path_input
     global path_output
     global input
+    global running
+    
     if event_type=="path":
         #WHY DOES THIS WORK I FEEL LIKE SIMULTIOUSLY A GOD AT CODING AND THE WORLDS WORST CODER WTF
         #WHY HAS ALL OF THE CODE FOR THIS PROJECT REQUIRED NO DEBUGGING(yet)
@@ -46,7 +47,7 @@ def place(event):
                 gate.update()
                 draw.input(gate=gate)
             
-        if path_input!=0 and path_output!=0:
+        if path_input!=0 and path_output!=0 and not running:
             if input==1:
                 path_input.input1=path_output
             else:
@@ -57,7 +58,7 @@ def place(event):
             path_output=0
         
     
-    else:
+    elif not running:
         for gate in gates.gate_list:
             min_x=gate.x_center-gate.total_width
             max_x=gate.x_center+gate.total_width
@@ -80,6 +81,9 @@ def delete(event):
     x=event.x
     y=event.y
     global gate_type
+    global running
+    if running:
+        return 0
     n=0
     for gate in gates.gate_list:
         min_x=gate.x_center-gate.total_width
@@ -94,12 +98,31 @@ def delete(event):
                 canvas.screen.delete(tag_body)
         n+=1
 def update():
-    canvas.screen
     for gate in gates.gate_list:
         if gate.gate_type == "input":
             pass
         else:
             gate.update()
         if gate.gate_type == "output":
-            print(gate.input1.output)
             draw.output(gate=gate)
+
+def update_loop():
+    global running
+    while running:
+        update()
+        time.sleep(0.1)
+    return 0
+
+run_thread=threading.Thread(target=update_loop)
+def run():
+    global running
+    running=True
+    global run_thread
+    run_thread=threading.Thread(target=update_loop)
+    run_thread.start()
+def stop():
+    global running
+    global run_thread
+    running=False
+    run_thread.join()
+    
