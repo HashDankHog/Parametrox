@@ -1,9 +1,9 @@
 from math import *
 import threading
 import time
-import draw
-import gates
-import canvas
+import draw as draw
+import gates as gates
+import canvas as canvas
 event_type="path"
 path_input=0
 path_output=0

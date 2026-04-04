@@ -1,6 +1,6 @@
 from tkinter import *
-import update
-import canvas
+import update as update
+import canvas as canvas
 
 canvas.screen.bind("<Button-1>", update.place)
 canvas.screen.bind("<Button-2>", update.delete)

@@ -3,6 +3,8 @@
     * Create classes for each gate with their own draw and update function.
     * If possible, fix the over reliance on global keywords
     * Comment your mother fucking code
+    * make it so pycache actually works with this because rn this is completely
+    isolated from the rest of the project
 2 - add gates
     * NOR
     * OR 
@@ -29,4 +31,4 @@
 6 - Add ability to read files
     * SVG or step
 7 - add analog capabilities
-    
+    * will happen after work on FEA starts

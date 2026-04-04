@@ -1,6 +1,6 @@
 from tkinter import *
-import canvas
-import gates
+import canvas as canvas
+import gates as gates
 def nand(x,y):
     main_width=100
     total_height=50
