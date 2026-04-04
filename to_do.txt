@@ -1,0 +1,32 @@
+1 - clean up the code: its ass
+    * Refactor update.py and draw.py so the computation isnt dependent on gui stuff
+    * Create classes for each gate with their own draw and update function.
+    * If possible, fix the over reliance on global keywords
+    * Comment your mother fucking code
+2 - add gates
+    * NOR
+    * OR 
+    * AND 
+    * XOR 
+    * NOT
+3 - add bigger blocks
+    * Counter
+    * universal shift register
+    * timer
+    * RAM
+    * D flop
+    * JK flop
+4 - improve UI
+    * Condense start and stop button into one
+    * add keyboard shortcuts
+    * maybe add a separate place into its one menu
+5 - Rewrite everything to do with paths:
+    * instead of drawing a linear line between connections, use DFS
+    * make the visitable nodes list not recomputed every timer
+    * Allow for the deletion of connections
+    * fix the bug where you can delete one gate without the connection being deleted
+    * etc
+6 - Add ability to read files
+    * SVG or step
+7 - add analog capabilities
+    
