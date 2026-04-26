@@ -93,9 +93,9 @@ def output(**kwargs):
 
 def path(gate_1,gate_2,gate_2_input):
     if gate_2_input==1:
-        canvas.screen.create_line(gate_1.x_output,gate_1.y_output,gate_2.x_input1,gate_2.y_input1,tag=gate_1.gate_tag)
+        canvas.screen.create_line(gate_1.x_output,gate_1.y_output,gate_2.x_input1,gate_2.y_input1,tag=gate_1.gate_tag,fill="red")
     else:
-        canvas.screen.create_line(gate_1.x_output,gate_1.y_output,gate_2.x_input2,gate_2.y_input2,tag=gate_1.gate_tag)
+        canvas.screen.create_line(gate_1.x_output,gate_1.y_output,gate_2.x_input2,gate_2.y_input2,tag=gate_1.gate_tag,fill="red")
     
 def path_not_use(x1,y1,x2,y2):
     """
