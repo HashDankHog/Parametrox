@@ -1,0 +1,26 @@
+    - addition
+    - subtraction
+    - multiply by constant
+    - inverse matrices
+    - adjoint
+    - transpose
+    - determinants
+    - matrix multiplication
+    - submatrix
+    - cross products
+    - dot products
+    - linear systems of equations solver
+    - cleanly print matrices
+        - ?
+        - example:
+            __     __
+            |  2.0  |
+            | -1.0  |
+            | -10.0 |
+            --     --
+    - simplex
+    - row reduction
+        - ?
+    - newton-raphsom
+        - ?
+    
