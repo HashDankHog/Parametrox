@@ -90,10 +90,13 @@ def sub(a,b):
     return c
 
 def mult(a,k):
-    if len(a[0])!=1:
-        raise ValueError("Input a must be a matrix")
-    elif not(type(k) == int or type(k) == float):
-        raise ValueError("Input k must be a integer or a float")
+    try:
+        if len(a[0])!=1:
+            raise ValueError("Input a must be a matrix")
+        elif not(type(k) == int or type(k) == float):
+            raise ValueError("Input k must be a integer or a float")
+    except:
+        pass
     c=[]
     for i in range(len(a)):
         c.append(a[i]*k)

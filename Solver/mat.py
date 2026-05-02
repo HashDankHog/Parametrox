@@ -11,7 +11,7 @@ TODO
     - clean up code cracka
 """
 
-import vec
+from Solver import vec
 import copy
 def size(A):
     m=len(A)

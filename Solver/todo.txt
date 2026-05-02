@@ -39,9 +39,10 @@ func.py
     x linearization
     x newton-raphsom
     x local root finding
-    - gradient descent
+    x gradient descent
     - partial integration and differentiation
         (ik partial integration isn't a real thing but it is helpful for me conceptually)
     - intersections
         (?)
+    - Handling parametric equations **********
     

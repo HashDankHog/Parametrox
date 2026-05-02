@@ -7,11 +7,14 @@ TODO:
     - rewrite linearization function for fractions and for augmented matrices
     - add support for parametrics
     - improve root finding
-    - gradient descent 
+    - constrained gradient descent
     - intersections
         - ?
+    - vector calculus
+    - diff eq solving
 """
 import math
+from Solver import vec
 
 #approximates f'(x)
 def diff(f,x,dx=0.05):
@@ -58,9 +61,9 @@ def lin(f,x0,dx=0.05):
     return [a,b], c
 
 #newton-raphsom root finding
-def root(f,X0,max_iter=20,dx=0.05,res=6):
+def root(f,x0,max_iter=20,dx=0.05,res=6):
     iter=0
-    x=X0
+    x=x0
     while not(round(f(x),res)==0 or iter>=max_iter):
         [a,b], c = lin(f,x,dx=dx)
         x=c/a
@@ -83,3 +86,29 @@ def root_ran(f,x_min,x_max,seg=1,res=6,dx=0.05,max_iter=20):
         x+=step
     return list(set(roots))
 
+#gradient
+def grad(f,V,dV=0.0001):
+    f0=f(V)
+    m=0
+    M=[]
+    for i in range(len(V)):
+        V[i]+=dV
+    
+        m=(f(V)-f0)/dV
+        M.append(m)
+        V[i]-=dV
+    return M
+
+#gradient descent
+def grad_des(f,V0,dV=0.0001,res=6,max_iter=100,step=0.1):
+    iter=0
+    
+    V=V0
+    f0=f(V)-1
+    while not((f(V) == f0) or iter>=max_iter):
+        f0=f(V)
+        M=grad(f,V,dV=dV)
+        V=vec.sub(V,M)
+        iter+=1
+        
+    return V
