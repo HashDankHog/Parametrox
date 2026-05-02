@@ -58,8 +58,20 @@ This section is only about larger, project wide goals or long term goals
 ### Solver
   -   I know the goals but I want to go eat my dinner so I'll finish writing this later
 ### Scene Manager
-  -   I know the goals but I want to go eat my dinner so I'll finish writing this later
+  - Menus
+  - Viewport
+  - Swapping between scenes
+
 ### Input Manager
-  -   I know the goals but I want to go eat my dinner so I'll finish writing this later
+  - keybinds
+  - buttons
+  - Textboxes
+  - management
 ### File Parser
-  -   I know the goals but I want to go eat my dinner so I'll finish writing this later
+  - SVG
+  - PNG
+  - NC
+### 3D projection
+ - Basic 3D projection
+  - some very basic raster graphics would do
+ - Affine Transformations 
