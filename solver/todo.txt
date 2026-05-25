@@ -1,0 +1,4 @@
+TODO:
+    - finish matrix.rs
+    - add either a decimal type or a round_to_digits module
+    - every other file vro
