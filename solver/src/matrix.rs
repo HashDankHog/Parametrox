@@ -3,6 +3,9 @@
 // NOTE: the rows and colums attributes might be unnesescary, but at the same time I am not sure
 //TODO
 //  - add, in a different file, the ability to round to a certain number of digits
+
+use std::io::{self, Read};
+
 #[derive(PartialEq, Debug)]
 struct Matrix
 {
@@ -62,7 +65,7 @@ impl Matrix
         }
         result_matrix
     }
-    //strassens algorithm not implemented yet due to inneficeeny for n < 100
+    //strassens algorithm not implemented yet due to inefficency for n < 100
     fn multiply_matrix(&self, matrix: &Matrix) -> Matrix {
         if matrix.rows != self.colums
         {
@@ -91,6 +94,73 @@ impl Matrix
                 result_matrix.element[row][colum] = self.element[colum][row];
             }
         }
+        result_matrix
+    }
+    //inefficent due to usage of clone trait
+    fn submatrix(&self, row: usize, colum: usize) -> Matrix{
+        let mut result_matrix = Matrix {
+            //NOTE: using clone is a performance hit and needs to be fixed
+            element: self.element.clone(),
+            rows: self.rows - 1,
+            colums: self.colums - 1
+        };
+        result_matrix.element.remove(row);
+        for row in 0..result_matrix.rows {
+            result_matrix.element[row].remove(colum);
+        }
+        result_matrix
+    }
+    //inefficent for a large number of reasons
+    fn determinant(&self) -> f64 {
+        if self.rows != self.colums {
+            panic!("cannot take the determinant of a non square matrix");
+        }
+        let size = self.rows;
+        if size == 2 {
+            return self.element[0][0]*self.element[1][1] - self.element[0][1]*self.element[1][0];
+        }
+        
+        let mut determinant = 0.0;
+        //powf method requires explicit typing, hence seperate variable declaration
+        let base: f64 = -1.0;
+
+        for colum in 0..size {
+            let submatrix = self.submatrix(0,colum);
+            //might want to move cofactor into its own method since its also used for adjoint
+            let cofactor = base.powf(colum as f64)*submatrix.determinant();
+            determinant += self.element[0][colum]*cofactor;
+        }
+        determinant
+    }
+    fn adjoint(&self) -> Matrix {
+        if self.rows != self.colums {
+            panic!("adjoint matrices must be square");
+        }
+        let mut result_matrix = create_matrix(self.rows, self.colums);
+        //variable exists for same reason it does in the determinant function
+        let base: f64 = -1.0;
+        for row in 0..self.rows {
+            for colum in 0..self.colums {
+                let submatrix = self.submatrix(row,colum);
+                let cofactor = base.powf((row+colum) as f64)*submatrix.determinant();
+                result_matrix.element[row][colum] = cofactor;
+            }
+        }
+        result_matrix = result_matrix.transpose();
+        result_matrix
+    }
+    //TODO: rewrite this code to not panic when determinant is 0 and instead return a recoverable error
+    fn inverse(&self) -> Matrix {
+        if self.rows != self.colums {
+            panic!("matrix must be square");
+        }
+        let determinant = self.determinant();
+    
+        let inverse_determinant = 1.0/determinant;
+        let mut result_matrix = self.multiply_scalar(inverse_determinant);
+
+        result_matrix = result_matrix.adjoint();
+
         result_matrix
     }
 }
@@ -142,6 +212,126 @@ mod tests {
             rows: 2,
             colums: 2
         };
+        assert_eq!(result_matrix, expected_matrix);
+    }
+
+    //NOTE: test should be rewritten at a later date for a test case besides the identity matrix
+    #[test]
+    fn inverse_test() {
+        let matrix = Matrix {
+            element: vec![vec![1.0, 0.0, 0.0],
+                          vec![0.0, 1.0, 0.0],
+                          vec![0.0, 0.0, 1.0]
+                        ],
+            rows: 3,
+            colums: 3          
+        };
+        let result_matrix = matrix.inverse();
+        assert_eq!(matrix,result_matrix);
+    }
+
+    #[test]
+    #[should_panic]
+    fn inverse_test_panic() {
+        let matrix = Matrix {
+            element: vec![vec![0.0, 1.0, 2.0],
+                          vec![3.0, 4.0, 5.0]
+                        ],
+            rows: 2,
+            colums: 3          
+        };
+        let result_matrix = matrix.inverse(); 
+    }
+
+    #[test]
+    fn adjoint_test() {
+        let matrix = Matrix {
+            element: vec![vec![0.0, 1.0, 2.0],
+                          vec![3.0, 4.0, 5.0],
+                          vec![6.0, 7.0, 8.0]
+                        ],
+            rows: 3,
+            colums: 3          
+        };
+
+        let result_matrix = matrix.adjoint();
+
+        let expected_matrix = Matrix {
+            element: vec![vec![-3.0, 6.0, -3.0],
+                          vec![6.0, -12.0, 6.0],
+                          vec![-3.0, 6.0, -3.0]
+                        ],   
+            rows: 3,
+            colums: 3   
+        };
+
+        assert_eq!(result_matrix, expected_matrix);
+    }
+
+    #[test]
+    #[should_panic]
+    fn adjoint_test_panic() {
+        let matrix = Matrix {
+            element: vec![vec![0.0, 1.0, 2.0],
+                          vec![3.0, 4.0, 5.0],
+                        ],
+            rows: 2,
+            colums: 3          
+        };
+
+        let result_matrix = matrix.adjoint();
+    }
+
+    #[test]
+    fn determinant_test() {
+        let matrix = Matrix{
+            //matrix is different from other test matrices in order to evalute to non 0 value
+            element: vec![vec![0.0, 3.0, 8.0],
+                          vec![5.0, 1.0, 4.0],
+                          vec![7.0, 6.0, 2.0]
+                          ],
+            rows: 3,
+            colums: 3
+        };
+        let result_value = matrix.determinant();
+        let expected_value = 238.0;
+
+        //might not work due to floating point, which will need to be fixed somehow
+        assert_eq!(result_value, expected_value);
+    }
+
+    #[test]
+    #[should_panic]
+    fn determinant_test_panic() {
+        let matrix = Matrix{
+            element: vec![vec![0.0, 1.0, 2.0],
+                          vec![3.0, 4.0, 5.0]
+                          ],
+            rows: 2,
+            colums: 3
+        };
+        let result_value = matrix.determinant();
+    }
+
+    #[test]
+    fn submatrix_test() {
+        let matrix = Matrix {
+            element: vec![vec![0.0, 1.0, 2.0],
+                          vec![3.0, 4.0, 5.0],
+                          vec![6.0, 7.0, 8.0]
+                          ],
+            rows: 3,
+            colums: 3
+        };
+        let result_matrix=matrix.submatrix(1,1);
+        let expected_matrix = Matrix {
+            element: vec![vec![0.0, 2.0],
+                          vec![6.0, 8.0]
+                          ],
+            rows: 2,
+            colums: 2
+        };
+
         assert_eq!(result_matrix, expected_matrix);
     }
 
