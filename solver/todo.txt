@@ -1,6 +1,5 @@
 TODO:
     MATRIX.RS
-        - Refactor
         - Augmented Matrices
         - Enums
         - Gaussian Elimination

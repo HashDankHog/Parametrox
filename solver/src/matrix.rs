@@ -15,7 +15,20 @@ struct Matrix
     colums: usize
 }
 impl Matrix
-{
+{   
+    
+    fn iterate<F: Fn(usize, usize) -> f64>(&self, value: F) -> Matrix {
+        let mut result_matrix = create_matrix(self.rows, self.colums);
+
+        for row in 0..result_matrix.rows {
+            for colum in 0..result_matrix.colums {
+                result_matrix.element[row][colum] = value(row, colum);
+            }
+        }
+
+        result_matrix
+    }
+
     fn print(&self) {
         for row in 0..self.rows
         {
@@ -27,75 +40,59 @@ impl Matrix
         }
         println!();
     }
+
     fn set(&mut self, element: [usize; 2], value: f64) {
+
         let row = element[0];
         let colum = element[1];
-        if (row > self.rows) || (colum > self.colums) 
-        {
-            panic!("attempted to access an element beyond the bounds of the element");
-        }
-        self.element[row][colum]=value;
-    }
-    fn multiply_scalar(&self, scalar: f64) -> Matrix {
-        let mut result_matrix = create_matrix(self.rows, self.colums);
 
-        for row in 0..self.rows
-        {
-            for colum in 0..self.colums
-            {
-                result_matrix.element[row][colum] = self.element[row][colum] * scalar;
-            }
+        if (row > self.rows) || (colum > self.colums) {
+
+            panic!("attempted to access an element beyond the bounds of the element");
+
         }
-        result_matrix
+
+        self.element[row][colum]=value;
+
     }
+
+    fn multiply_scalar(&self, scalar: f64) -> Matrix {
+        self.iterate(|row, colum| self.element[row][colum] * scalar)
+    }
+
     fn add_matrix(&self, matrix: &Matrix) -> Matrix {
-        if (matrix.rows != self.rows) || (matrix.colums != self.colums)
-        {
+        if (matrix.rows != self.rows) || (matrix.colums != self.colums) {   
             panic!("cannot add matrices of different dimensions");
         }
 
-        let mut result_matrix = create_matrix(self.rows, self.colums);
-
-        for row in 0..self.rows
-        {
-            for colum in 0..self.colums
-            {
-                result_matrix.element[row][colum] = self.element[row][colum] + matrix.element[row][colum];
-            }
-        }
-        result_matrix
+        self.iterate(|row, colum| self.element[row][colum] + matrix.element[row][colum])
     }
+
     //strassens algorithm not implemented yet due to inefficency for n < 100
     fn multiply_matrix(&self, matrix: &Matrix) -> Matrix {
-        if matrix.rows != self.colums
-        {
+        if matrix.rows != self.colums {
             panic!("yo dimensions aint correct twin");
         }
 
         let mut result_matrix = create_matrix(self.rows, matrix.colums);
     
-        for row in 0..self.rows
-        {
-            for colum in 0..matrix.colums
-            {
-                //colum_mult is not a good variable name
-                for colum_mult in 0..self.colums
-                {
-                    result_matrix.element[row][colum] += self.element[row][colum_mult]*matrix.element[colum_mult][colum];
-                } 
-            }
+        result_matrix.iterate( |row, colum| {
+            let mut element = 0.0;
+
+            for matrix_row in 0..self.colums {
+                element += self.element[row][matrix_row] * matrix.element[matrix_row][colum];
+            } 
+
+            element 
         }
-        result_matrix
+        )
     }
+
     fn transpose(&self) -> Matrix {
-        let mut result_matrix = create_matrix(self.colums, self.rows);
-        for row in 0..self.colums {
-            for colum in 0..self.rows {
-                result_matrix.element[row][colum] = self.element[colum][row];
-            }
-        }
-        result_matrix
+        let result_matrix = create_matrix(self.colums, self.rows);
+        result_matrix.iterate(|row, colum| self.element[colum][row])
     }
+
     //inefficent due to usage of clone trait
     fn submatrix(&self, row: usize, colum: usize) -> Matrix{
         let mut result_matrix = Matrix {
@@ -104,56 +101,54 @@ impl Matrix
             rows: self.rows - 1,
             colums: self.colums - 1
         };
+
         result_matrix.element.remove(row);
+
         for row in 0..result_matrix.rows {
             result_matrix.element[row].remove(colum);
         }
+
         result_matrix
     }
+
     //inefficent for a large number of reasons
     fn determinant(&self) -> f64 {
         if self.rows != self.colums {
             panic!("cannot take the determinant of a non square matrix");
         }
+
         let size = self.rows;
         if size == 2 {
             return self.element[0][0]*self.element[1][1] - self.element[0][1]*self.element[1][0];
         }
         
         let mut determinant = 0.0;
-        //powf method requires explicit typing, hence seperate variable declaration
-        let base: f64 = -1.0;
 
         for colum in 0..size {
             let submatrix = self.submatrix(0,colum);
-            //might want to move cofactor into its own method since its also used for adjoint
-            let cofactor = base.powf(colum as f64)*submatrix.determinant();
-            determinant += self.element[0][colum]*cofactor;
+            let cofactor = f64::from(-1.0).powf(colum as f64) * submatrix.determinant(); //might want to move cofactor into its own method
+
+            determinant += self.element[0][colum] * cofactor;
         }
+
         determinant
     }
+
     fn adjoint(&self) -> Matrix {
         if self.rows != self.colums {
-            panic!("adjoint matrices must be square");
-        }
-        let mut result_matrix = create_matrix(self.rows, self.colums);
-        //variable exists for same reason it does in the determinant function
-        let base: f64 = -1.0;
-        for row in 0..self.rows {
-            for colum in 0..self.colums {
-                let submatrix = self.submatrix(row,colum);
-                let cofactor = base.powf((row+colum) as f64)*submatrix.determinant();
-                result_matrix.element[row][colum] = cofactor;
-            }
-        }
-        result_matrix = result_matrix.transpose();
-        result_matrix
+            panic!("matrix must be square");
+        }    
+        
+        self.iterate(|row, colum| f64::from(-1.0).powf((row+colum) as f64) * self.submatrix(row,colum).determinant()).transpose()               
     }
+    
     //TODO: rewrite this code to not panic when determinant is 0 and instead return a recoverable error
     fn inverse(&self) -> Matrix {
+
         if self.rows != self.colums {
             panic!("matrix must be square");
         }
+
         let determinant = self.determinant();
     
         let inverse_determinant = 1.0/determinant;
@@ -173,11 +168,14 @@ fn create_matrix(rows: usize, colums: usize) -> Matrix {
         colums: colums
     }
 }
+
 fn identity_matrix(size: usize) -> Matrix {
     let mut identity_matrix = create_matrix(size,size);
+
     for diag_element in 0..size {
         identity_matrix.element[diag_element][diag_element] = 1.0;
     }
+    
     identity_matrix
 }
 
