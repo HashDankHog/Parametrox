@@ -1,4 +1,54 @@
 TODO:
-    - finish matrix.rs
-    - add either a decimal type or a round_to_digits module
-    - every other file vro
+    MATRIX.RS
+        - Refactor
+        - Augmented Matrices
+        - Enums
+        - Gaussian Elimination
+        - Decomposition
+        - Parrelalization
+        - Strassens Algorithm (?)
+    FUNCTION.RS
+        - Runge-Kunta
+        - Linearization
+        - Gradients
+        - Derivitives
+        - Integrals
+        - Parametric Functions (?)
+    GEOMETRY.RS
+        - Conic Sections
+        - Planes
+        - Transformations
+        - Regions/Areas
+    GEOMERTY/CSG.RS
+        - CSG Trees
+        - Primitives
+        - Boolean Operations
+        - Objects
+        - Point Classification
+    GEOMETRY/SDF.RS
+        - SDF
+    GEOMETRY/SWEEP.RS
+        - Sweeping
+        - SDF Generation
+    PARAMETER.RS (?)
+        - Mean Squared Error
+        - Constraints
+        - Parameters
+        - Parametric Functions
+    OPTIMIZE.RS
+        - Gradient Descent
+        - Newton-Raphsom
+        - Simplex Method (?)
+        - Method of Least Squares (?)
+PRIORITY:
+    1: matrix.rs
+    2: function.rs
+    3: parameter.rs
+    4: optimize.rs
+    5: geometry.rs
+    6: geometry/sdf.rs
+    7: geometry/csg.rs
+    8: geometry/sweep.rs
+    
+
+    
