@@ -6,14 +6,14 @@
 
 
 #[derive(PartialEq, Debug)]
-struct Matrix {
+pub struct Matrix {
     //naming this variable element makes any code that reads a specific element of the matrix more readable
     element: Vec<Vec<f64>>,
     rows: usize,
     colums: usize,
 }
 impl Matrix {
-    fn iterate<F: Fn(usize, usize) -> f64>(&self, value: F) -> Matrix {
+    pub fn iterate<F: Fn(usize, usize) -> f64>(&self, value: F) -> Matrix {
         let mut result_matrix = create_matrix(self.rows, self.colums);
 
         for row in 0..result_matrix.rows {
@@ -25,7 +25,7 @@ impl Matrix {
         result_matrix
     }
 
-    fn print(&self) {
+    pub fn print(&self) {
         for row in 0..self.rows {
             for colum in 0..self.colums {
                 print!("{} ", self.element[row][colum]);
@@ -35,7 +35,7 @@ impl Matrix {
         println!();
     }
 
-    fn set(&mut self, element: [usize; 2], value: f64) {
+    pub fn set(&mut self, element: [usize; 2], value: f64) {
         let row = element[0];
         let colum = element[1];
 
@@ -46,11 +46,11 @@ impl Matrix {
         self.element[row][colum] = value;
     }
 
-    fn multiply_scalar(&self, scalar: f64) -> Matrix {
+    pub fn multiply_scalar(&self, scalar: f64) -> Matrix {
         self.iterate(|row, colum| self.element[row][colum] * scalar)
     }
 
-    fn add_matrix(&self, matrix: &Matrix) -> Matrix {
+    pub fn add_matrix(&self, matrix: &Matrix) -> Matrix {
         if (matrix.rows != self.rows) || (matrix.colums != self.colums) {
             panic!("cannot add matrices of different dimensions");
         }
@@ -59,7 +59,7 @@ impl Matrix {
     }
 
     //strassens algorithm not implemented yet due to inefficency for n < 100
-    fn multiply_matrix(&self, matrix: &Matrix) -> Matrix {
+    pub fn multiply_matrix(&self, matrix: &Matrix) -> Matrix {
         if matrix.rows != self.colums {
             panic!("yo dimensions aint correct twin");
         }
@@ -77,13 +77,13 @@ impl Matrix {
         })
     }
 
-    fn transpose(&self) -> Matrix {
+    pub fn transpose(&self) -> Matrix {
         let result_matrix = create_matrix(self.colums, self.rows);
         result_matrix.iterate(|row, colum| self.element[colum][row])
     }
 
     //inefficent due to usage of clone trait
-    fn submatrix(&self, row: usize, colum: usize) -> Matrix {
+    pub fn submatrix(&self, row: usize, colum: usize) -> Matrix {
         let mut result_matrix = Matrix {
             //NOTE: using clone is a performance hit and needs to be fixed
             element: self.element.clone(),
@@ -101,7 +101,7 @@ impl Matrix {
     }
 
     //inefficent for a large number of reasons
-    fn determinant(&self) -> f64 {
+    pub fn determinant(&self) -> f64 {
         if self.rows != self.colums {
             panic!("cannot take the determinant of a non square matrix");
         }
@@ -124,7 +124,7 @@ impl Matrix {
         determinant
     }
 
-    fn adjoint(&self) -> Matrix {
+    pub fn adjoint(&self) -> Matrix {
         if self.rows != self.colums {
             panic!("matrix must be square");
         }
@@ -136,7 +136,7 @@ impl Matrix {
     }
 
     //TODO: rewrite this code to not panic when determinant is 0 and instead return a recoverable error
-    fn inverse(&self) -> Matrix {
+    pub fn inverse(&self) -> Matrix {
         if self.rows != self.colums {
             panic!("matrix must be square");
         }
@@ -153,7 +153,7 @@ impl Matrix {
 }
 
 //NOTE: inconsistent typing with the set function
-fn create_matrix(rows: usize, colums: usize) -> Matrix {
+pub fn create_matrix(rows: usize, colums: usize) -> Matrix {
     Matrix {
         element: vec![vec![0.0; colums]; rows],
         rows: rows,
@@ -161,7 +161,7 @@ fn create_matrix(rows: usize, colums: usize) -> Matrix {
     }
 }
 
-fn identity_matrix(size: usize) -> Matrix {
+pub fn identity_matrix(size: usize) -> Matrix {
     let mut identity_matrix = create_matrix(size, size);
 
     for diag_element in 0..size {
