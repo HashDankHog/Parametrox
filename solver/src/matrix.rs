@@ -3,13 +3,12 @@
 // NOTE: the rows and colums attributes might be unnesescary, but at the same time I am not sure
 //TODO
 //  - add, in a different file, the ability to round to a certain number of digits
-//  - Add ability to operate on two expression matrices, but thats lowkirk above my paygrade rn
-pub use crate::parameter::Value;
+
 
 #[derive(PartialEq, Debug)]
 pub struct Matrix {
     //naming this variable element makes any code that reads a specific element of the matrix more readable
-    element: Vec<Vec<Value>>,
+    element: Vec<Vec<f64>>,
     rows: usize,
     colums: usize,
 }
@@ -19,7 +18,7 @@ impl Matrix {
 
         for row in 0..result_matrix.rows {
             for colum in 0..result_matrix.colums {
-                result_matrix.element[row][colum] = Value::Constant(value(row, colum));
+                result_matrix.element[row][colum] = value(row, colum);
             }
         }
 
@@ -29,14 +28,14 @@ impl Matrix {
     pub fn print(&self) {
         for row in 0..self.rows {
             for colum in 0..self.colums {
-                print!("{} ", self.element[row][colum].value());
+                print!("{} ", self.element[row][colum]);
             }
             println!();
         }
         println!();
     }
 
-    pub fn set(&mut self, element: [usize; 2], value: Value) {
+    pub fn set(&mut self, element: [usize; 2], value: f64) {
         let row = element[0];
         let colum = element[1];
 
@@ -48,7 +47,7 @@ impl Matrix {
     }
 
     pub fn multiply_scalar(&self, scalar: f64) -> Matrix {
-        self.iterate(|row, colum| self.element[row][colum].value() * scalar)
+        self.iterate(|row, colum| self.element[row][colum] * scalar)
     }
 
     pub fn add_matrix(&self, matrix: &Matrix) -> Matrix {
@@ -56,7 +55,7 @@ impl Matrix {
             panic!("cannot add matrices of different dimensions");
         }
 
-        self.iterate(|row, colum| self.element[row][colum].value() + matrix.element[row][colum].value())
+        self.iterate(|row, colum| self.element[row][colum] + matrix.element[row][colum])
     }
 
     //strassens algorithm not implemented yet due to inefficency for n < 100
@@ -71,7 +70,7 @@ impl Matrix {
             let mut element = 0.0;
 
             for matrix_row in 0..self.colums {
-                element += self.element[row][matrix_row].value() * matrix.element[matrix_row][colum].value();
+                element += self.element[row][matrix_row] * matrix.element[matrix_row][colum];
             }
 
             element
@@ -80,14 +79,17 @@ impl Matrix {
 
     pub fn transpose(&self) -> Matrix {
         let result_matrix = create_matrix(self.colums, self.rows);
-        result_matrix.iterate(|row, colum| self.element[colum][row].value())
+        result_matrix.iterate(|row, colum| self.element[colum][row])
     }
 
-    //Ironically, now I need to figure out how to use the clone trait on this
+    //inefficent due to usage of clone trait
     pub fn submatrix(&self, row: usize, colum: usize) -> Matrix {
-        let mut result_matrix = create_matrix(self.rows - 1, self.colums - 1);
-
-        result_matrix = result_matrix.iterate(|row, colum| self.element[row][colum].value());
+        let mut result_matrix = Matrix {
+            //NOTE: using clone is a performance hit and needs to be fixed
+            element: self.element.clone(),
+            rows: self.rows - 1,
+            colums: self.colums - 1,
+        };
 
         result_matrix.element.remove(row);
 
@@ -106,8 +108,8 @@ impl Matrix {
 
         let size = self.rows;
         if size == 2 {
-            return self.element[0][0].value() * self.element[1][1].value()
-                - self.element[0][1].value() * self.element[1][0].value();
+            return self.element[0][0] * self.element[1][1]
+                - self.element[0][1] * self.element[1][0];
         }
 
         let mut determinant = 0.0;
@@ -116,7 +118,7 @@ impl Matrix {
             let submatrix = self.submatrix(0, colum);
             let cofactor = f64::from(-1.0).powf(colum as f64) * submatrix.determinant(); //might want to move cofactor into its own method
 
-            determinant += self.element[0][colum].value() * cofactor;
+            determinant += self.element[0][colum] * cofactor;
         }
 
         determinant
@@ -153,7 +155,7 @@ impl Matrix {
 //NOTE: inconsistent typing with the set function
 pub fn create_matrix(rows: usize, colums: usize) -> Matrix {
     Matrix {
-        element: vec![vec![Value::Constant(0.0); colums]; rows],
+        element: vec![vec![0.0; colums]; rows],
         rows: rows,
         colums: colums,
     }
@@ -163,7 +165,7 @@ pub fn identity_matrix(size: usize) -> Matrix {
     let mut identity_matrix = create_matrix(size, size);
 
     for diag_element in 0..size {
-        identity_matrix.element[diag_element][diag_element] = Value::Constant(1.0);
+        identity_matrix.element[diag_element][diag_element] = 1.0;
     }
 
     identity_matrix
@@ -176,92 +178,52 @@ pub fn identity_matrix(size: usize) -> Matrix {
 mod tests {
     use super::*;
 
-    struct TestMatrix {
-        identity: Matrix,
-        empty: Matrix,
-        vector: Matrix,
-        three_by_three: Matrix,
-        two_by_three: Matrix,
-        three_by_two: Matrix,
-    }
-    impl TestMatrix {
-        fn new() -> Self {
-            Self {
-                identity: Matrix {
-                    element: vec![vec![Value::Constant(1.0), Value::Constant(0.0), Value::Constant(0.0)], 
-                        vec![Value::Constant(0.0), Value::Constant(1.0), Value::Constant(0.0)], 
-                        vec![Value::Constant(0.0), Value::Constant(0.0), Value::Constant(1.0)]],
-                    rows: 3,
-                    colums: 3
-                },
-                empty: Matrix {
-                    element: vec![vec![Value::Constant(0.0), Value::Constant(0.0), Value::Constant(0.0)], 
-                        vec![Value::Constant(0.0), Value::Constant(0.0), Value::Constant(0.0)], 
-                        vec![Value::Constant(0.0), Value::Constant(0.0), Value::Constant(0.0)]],
-                    rows: 3,
-                    colums: 3
-                },
-                vector: Matrix {
-                    element: vec![vec![Value::Constant(0.0)], 
-                        vec![Value::Constant(1.0)], 
-                        vec![Value::Constant(2.0)]],
-                    rows: 3,
-                    colums: 1
-                },
-                three_by_three: Matrix {
-                    element: vec![vec![Value::Constant(0.0), Value::Constant(6.0), Value::Constant(8.0)], 
-                        vec![Value::Constant(3.0), Value::Constant(1.0), Value::Constant(7.0)], 
-                        vec![Value::Constant(5.0), Value::Constant(4.0), Value::Constant(2.0)]],
-                    rows: 3,
-                    colums: 3
-                },
-                two_by_three: Matrix {
-                    element: vec![vec![Value::Constant(0.0), Value::Constant(1.0), Value::Constant(2.0)], 
-                        vec![Value::Constant(3.0), Value::Constant(4.0), Value::Constant(5.0)]],
-                    rows: 2,
-                    colums: 3
-                },
-                three_by_two: Matrix {
-                    element: vec![vec![Value::Constant(0.0), Value::Constant(3.0)], 
-                        vec![Value::Constant(1.0), Value::Constant(4.0)], 
-                        vec![Value::Constant(2.0), Value::Constant(5.0)]],
-                    rows: 3,
-                    colums: 2
-                },
-            }
-        }
-    }
-
     #[test]
     fn identity_matrix_test() {
-        let test_matrix = TestMatrix::new();
-        let result_matrix = identity_matrix(3);
-        assert_eq!(result_matrix, test_matrix.identity);
+        let result_matrix = identity_matrix(2);
+        let expected_matrix = Matrix {
+            element: vec![vec![1.0, 0.0], vec![0.0, 1.0]],
+            rows: 2,
+            colums: 2,
+        };
+        assert_eq!(result_matrix, expected_matrix);
     }
 
     #[test]
     fn create_matrix_test() {
-        let test_matrix = TestMatrix::new();
-        let result_matrix = create_matrix(3, 3);
-        assert_eq!(result_matrix, test_matrix.empty);
+        let result_matrix = create_matrix(2, 2);
+        let expected_matrix = Matrix {
+            element: vec![vec![0.0, 0.0], vec![0.0, 0.0]],
+            rows: 2,
+            colums: 2,
+        };
+        assert_eq!(result_matrix, expected_matrix);
     }
 
     //NOTE: test should be rewritten at a later date for a test case besides the identity matrix
-    //its not right now because of floating point error
     #[test]
     fn inverse_test() {
-        let test_matrix = TestMatrix::new();
-        let matrix = test_matrix.identity;
-
+        let matrix = Matrix {
+            element: vec![
+                vec![1.0, 0.0, 0.0],
+                vec![0.0, 1.0, 0.0],
+                vec![0.0, 0.0, 1.0],
+            ],
+            rows: 3,
+            colums: 3,
+        };
         let result_matrix = matrix.inverse();
-        assert_eq!(result_matrix, matrix); // inverse of identity matrix is the identity matrix
+        assert_eq!(matrix, result_matrix);
     }
 
     #[test]
     #[should_panic]
     fn inverse_test_panic() {
-        let test_matrix = TestMatrix::new();
-        let matrix = test_matrix.three_by_two;
+        let matrix = Matrix {
+            element: vec![vec![0.0, 1.0, 2.0], vec![3.0, 4.0, 5.0]],
+            rows: 2,
+            colums: 3,
+        };
         let _result_matrix = matrix.inverse();
     }
 

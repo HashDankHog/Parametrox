@@ -1,4 +1,4 @@
-#[derive(Clone, PartialEq)]
+
 pub enum Value {
     Constant(f64),
     Expression(Box<dyn Fn() -> f64>),
