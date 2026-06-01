@@ -101,18 +101,26 @@ pub fn parse(tokens: Vec<String>) -> Vec<String> {
     precidence.insert(String::from("*"), 2);
     precidence.insert(String::from("/"), 2);
     let mut output = Vec::new();
-    let mut operation_stack = Vec::new();
-    operation_stack.push(String::new());
+    let mut operation_stack: Vec<String> = Vec::new();
+    //idiotic fix for issue revolving accessing an empty vector
+    let mut index = 0;
     for token in tokens {
         let value = precidence.get(&token).copied().unwrap_or(0);
         match value {
             0 => output.push(token),
             _ => {
-                if value > precidence.get(&operation_stack[0]).copied().unwrap_or(3) {
-                    output.push(token);
+                if index > 1
+                    && precidence.get(&token).copied().unwrap()
+                        < precidence
+                            .get(&operation_stack[index - 1])
+                            .copied()
+                            .unwrap()
+                {
+                    output.push(operation_stack.pop().unwrap());
                 } else {
-                    operation_stack.push(token);
+                    index += 1;
                 }
+                operation_stack.push(token);
             }
         }
     }
@@ -120,10 +128,58 @@ pub fn parse(tokens: Vec<String>) -> Vec<String> {
     for operator in operation_stack {
         output.push(operator);
     }
-    output.pop();
     output
 }
 
+pub fn interpret(expression: Vec<String>) -> f64 {
+    let mut output: Vec<String> = Vec::new();
+    let mut calculation_stack: Vec<String> = Vec::new();
+    let mut calculate;
+    let mut left_hand_side: f64;
+    let mut right_hand_side: f64;
+    for element in expression {
+        calculate = false;
+        match element.chars().next().unwrap_or('0') {
+            '+' | '-' | '*' | '/' => {
+                calculate = true;
+                calculation_stack.push(element);
+            }
+            _ => output.push(element),
+        }
+
+        if calculate {
+            match calculation_stack[0].chars().next().unwrap() {
+                '+' => {
+                    right_hand_side = output.pop().unwrap().parse().unwrap();
+                    left_hand_side = output.pop().unwrap().parse().unwrap();
+                    output.push((right_hand_side + left_hand_side).to_string())
+                }
+                '-' => {
+                    right_hand_side = output.pop().unwrap().parse().unwrap();
+                    left_hand_side = output.pop().unwrap().parse().unwrap();
+                    output.push((left_hand_side - right_hand_side).to_string())
+                }
+                '/' => {
+                    right_hand_side = output.pop().unwrap().parse().unwrap();
+                    left_hand_side = output.pop().unwrap().parse().unwrap();
+                    output.push((left_hand_side / right_hand_side).to_string())
+                }
+                '*' => {
+                    right_hand_side = output.pop().unwrap().parse().unwrap();
+                    left_hand_side = output.pop().unwrap().parse().unwrap();
+                    output.push((right_hand_side * left_hand_side).to_string())
+                }
+                _ => panic!(""),
+            }
+            calculation_stack.pop();
+        }
+    }
+    output[0].parse().unwrap()
+}
+
+pub fn evaluate(expression: String) -> f64 {
+    interpret(parse(tokenize(&expression)))
+}
 
 #[cfg(test)]
 mod tests {
@@ -210,5 +266,28 @@ mod tests {
                 String::from("+")
             ]
         )
+    }
+
+    #[test]
+    fn interpret_test() {
+        let expression = vec![
+            String::from("1"),
+            String::from("2"),
+            String::from("1"),
+            String::from("3"),
+            String::from("*"),
+            String::from("-"),
+            String::from("+"),
+        ];
+        let result = interpret(expression);
+        assert_eq!(result, 0.0);
+    }
+
+    #[test]
+    fn evaluate_test() {
+        let expression = String::from("1 + 2/4 -  5");
+        let result = evaluate(expression);
+
+        assert_eq!(result, -3.5);
     }
 }
