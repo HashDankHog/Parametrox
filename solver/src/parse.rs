@@ -1,91 +1,118 @@
 use std::collections::HashMap;
 
-pub fn tokenize(expression_raw: &String) -> Vec<String> {
-    let mut expression = expression_raw.clone(); // clone might make this more inneficient than my original solution 
+enum TokenState {
+    Beginning,
+    Constant,
+    Parameter,
+    Operator,
+    Parantheses,
+}
 
+pub fn tokenize(
+    raw_expression: &String,
+    operators: &String,
+    mnemonics: &Vec<(String, String)>,
+) -> Vec<String> {
+    let mut expression = raw_expression.clone(); // clone might make this more inneficient than my original solution 
+    for (from, to) in mnemonics {
+        expression = expression.replace(from, to);
+    }
     expression.make_ascii_lowercase();
     expression = expression.replace(" ", "");
-    //tokinizes the input expression
+
     let mut tokens: Vec<String> = Vec::new();
     let mut token = String::new();
-    // I should probably create an enum for this instead of using magic numbers but there might be a performance hit
-    let mut token_type = 0;
-
-    /* tokenizing rules
-    each token can be either an operation
-    a parantheses
-    the letter p followed by an integer
-    or an integer
-    */
-    /* token_type
-    0: begining of string
-    1: number
-    2: variable
-    3: operation
-    4: prefix op
-    5: postfix op
-     */
+    let mut token_type = TokenState::Beginning;
 
     for character in expression.chars() {
         match token_type {
-            0 => {
-                // beginning of expression
-
+            TokenState::Beginning => {
                 token.push(character);
                 match character {
-                    '0'..='9' => token_type = 1,
-                    'p' => token_type = 2,
-                    '(' => token_type = 4,
-                    _ => panic!("invalid expression"),
-                }
-            }
-            1 => {
-                // constant
-                match character {
-                    '0'..='9' | '.' => token.push(character),
-                    'p' => {
-                        tokens.push(token);
-                        tokens.push(String::from("*"));
-
-                        token = String::from("p");
-                        token_type = 2;
-                    }
-                    '+' | '-' | '/' | '*' => {
-                        tokens.push(token);
+                    '0'..='9' => token_type = TokenState::Constant,
+                    'p' => token_type = TokenState::Parameter,
+                    '(' => token_type = TokenState::Parantheses,
+                    character if operators.contains(character) => {
+                        //inelegant way to handle prefix expressions because it will accept non prefix ones too
                         token = String::from(character);
-                        token_type = 3;
+                        token_type = TokenState::Operator;
                     }
                     _ => panic!("invalid expression"),
                 }
             }
-            2 => match character {
+            TokenState::Constant => match character {
+                '0'..='9' | '.' => token.push(character),
+                'p' => {
+                    tokens.push(token);
+                    tokens.push(String::from("*"));
+
+                    token = String::from("p");
+                    token_type = TokenState::Parameter;
+                }
+                character if operators.contains(character) => {
+                    tokens.push(token);
+                    token = String::from(character);
+                    token_type = TokenState::Operator;
+                }
+                '(' => {
+                    tokens.push(token);
+                    tokens.push(String::from("*"));
+                    token = String::from("(");
+                    token_type = TokenState::Operator;
+                }
+                ')' => {
+                    tokens.push(token);
+                    token = String::from(")");
+                }
+                _ => panic!("invalid expression"),
+            },
+
+            TokenState::Parameter => match character {
                 '0'..='9' => token.push(character),
                 'p' => {
                     tokens.push(token);
                     tokens.push(String::from("*"));
                     token = String::from("p");
                 }
-                '+' | '-' | '/' | '*' => {
+                character if operators.contains(character) => {
                     tokens.push(token);
                     token = String::from(character);
-                    token_type = 3;
+                    token_type = TokenState::Operator;
+                }
+                '(' => {
+                    tokens.push(token);
+                    tokens.push(String::from("*"));
+                    token = String::from("(");
+                    token_type = TokenState::Operator;
+                }
+                ')' => {
+                    tokens.push(token);
+                    token = String::from(")");
                 }
                 _ => panic!("invalid expression"),
             },
-            3 => {
+            TokenState::Operator => {
                 tokens.push(token);
 
                 token = String::from(character);
 
                 match character {
-                    ' ' => token_type = 0,
-                    '0'..='9' => token_type = 1,
-                    'p' => token_type = 2,
-                    '(' => token_type = 4,
+                    '0'..='9' => token_type = TokenState::Constant,
+                    'p' => token_type = TokenState::Parameter,
+                    '(' => token_type = TokenState::Parantheses,
                     _ => panic!("invalid expression"),
                 }
             }
-            _ => unreachable!(),
+            TokenState::Parantheses => {
+                tokens.push(token);
+                token = String::new();
+                token.push(character);
+                match character {
+                    '0'..='9' => token_type = TokenState::Constant,
+                    'p' => token_type = TokenState::Parameter,
+                    _ => panic!("invalid expression"),
+                }
+            }
         }
     }
     tokens.push(token); // pushs last token on stack
@@ -94,200 +121,398 @@ pub fn tokenize(expression_raw: &String) -> Vec<String> {
 
 //shunting yard algorithm
 //autism reference
-pub fn parse(tokens: Vec<String>) -> Vec<String> {
-    let mut precidence = HashMap::new();
-    precidence.insert(String::from("+"), 1);
-    precidence.insert(String::from("-"), 1);
-    precidence.insert(String::from("*"), 2);
-    precidence.insert(String::from("/"), 2);
-    let mut output = Vec::new();
-    let mut operation_stack: Vec<String> = Vec::new();
-    //idiotic fix for issue revolving accessing an empty vector
-    let mut index = 0;
+//needs to be refactored again because ts buns
+pub fn parse(mut tokens: Vec<String>, precidence: &HashMap<char, i32>) -> Vec<String> {
+    let mut output: Vec<String> = Vec::new();
+    let mut operator_stack: Vec<char> = Vec::new();
+    let mut operators = String::new();
+    let mut temp: char = ' ';
+    tokens.push(String::from(" "));
+    for (operator, _precidence) in precidence {
+        operators.push(*operator);
+    }
     for token in tokens {
-        let value = precidence.get(&token).copied().unwrap_or(0);
-        match value {
-            0 => output.push(token),
-            _ => {
-                if index > 1
-                    && precidence.get(&token).copied().unwrap()
-                        < precidence
-                            .get(&operation_stack[index - 1])
-                            .copied()
-                            .unwrap()
-                {
-                    output.push(operation_stack.pop().unwrap());
-                } else {
-                    index += 1;
+        loop {
+            let stack_length = operator_stack.len();
+            if stack_length == 0 {
+                if temp != ' ' {
+                    operator_stack.push(temp);
+                    temp = ' ';
                 }
-                operation_stack.push(token);
+                break;
+            }
+
+            let stack_precidence = precidence
+                .get(&operator_stack[stack_length - 1])
+                .copied()
+                .unwrap_or(0);
+            let temp_precidence = precidence.get(&temp).copied().unwrap_or(i32::MAX);
+            match temp {
+                ')' if operator_stack[stack_length - 1] == '(' => {
+                    operator_stack.pop();
+                    temp = ' ';
+                    break;
+                }
+                ')' => output.push(String::from(operator_stack.pop().unwrap())),
+                _operator if stack_precidence.abs() > temp_precidence.abs() => {
+                    output.push(String::from(operator_stack.pop().unwrap()))
+                }
+                _operator if stack_precidence.abs() == temp_precidence => {
+                    output.push(String::from(operator_stack.pop().unwrap()))
+                }
+                ' ' => break,
+                _ => {
+                    operator_stack.push(temp);
+                    temp = ' ';
+                    break;
+                }
             }
         }
+        match token.chars().next().unwrap_or('0') {
+            operator if operators.contains(operator) => temp = operator,
+            parenthenses @ ('(' | ')') => temp = parenthenses,
+            _ => output.push(token),
+        }
     }
-    operation_stack.reverse();
-    for operator in operation_stack {
-        output.push(operator);
+    output.pop();
+    operator_stack.reverse();
+    for operator in operator_stack {
+        output.push(String::from(operator));
     }
     output
 }
 
-pub fn interpret(expression: Vec<String>) -> f64 {
+pub fn interpret(
+    expression: &Vec<String>,
+    operators: &HashMap<char, Box<dyn Fn(f64, f64) -> f64>>,
+) -> f64 {
     let mut output: Vec<String> = Vec::new();
-    let mut calculation_stack: Vec<String> = Vec::new();
-    let mut calculate;
+
+    let mut symbols = String::new();
+    for (symbol, _closure) in operators {
+        symbols.push(*symbol);
+    }
     let mut left_hand_side: f64;
     let mut right_hand_side: f64;
     for element in expression {
-        calculate = false;
         match element.chars().next().unwrap_or('0') {
-            '+' | '-' | '*' | '/' => {
-                calculate = true;
-                calculation_stack.push(element);
+            operator if symbols.contains(operator) => {
+                right_hand_side = output.pop().unwrap().parse().unwrap();
+                left_hand_side = output.pop().unwrap().parse().unwrap();
+                let value = (operators.get(&operator).unwrap())(left_hand_side, right_hand_side);
+                output.push(value.to_string());
             }
-            _ => output.push(element),
-        }
-
-        if calculate {
-            match calculation_stack[0].chars().next().unwrap() {
-                '+' => {
-                    right_hand_side = output.pop().unwrap().parse().unwrap();
-                    left_hand_side = output.pop().unwrap().parse().unwrap();
-                    output.push((right_hand_side + left_hand_side).to_string())
-                }
-                '-' => {
-                    right_hand_side = output.pop().unwrap().parse().unwrap();
-                    left_hand_side = output.pop().unwrap().parse().unwrap();
-                    output.push((left_hand_side - right_hand_side).to_string())
-                }
-                '/' => {
-                    right_hand_side = output.pop().unwrap().parse().unwrap();
-                    left_hand_side = output.pop().unwrap().parse().unwrap();
-                    output.push((left_hand_side / right_hand_side).to_string())
-                }
-                '*' => {
-                    right_hand_side = output.pop().unwrap().parse().unwrap();
-                    left_hand_side = output.pop().unwrap().parse().unwrap();
-                    output.push((right_hand_side * left_hand_side).to_string())
-                }
-                _ => panic!(""),
-            }
-            calculation_stack.pop();
+            _ => output.push(element.clone()),
         }
     }
     output[0].parse().unwrap()
 }
 
-pub fn evaluate(expression: String) -> f64 {
-    interpret(parse(tokenize(&expression)))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    struct TestExpressions {
+        raw_expression_whitespace: String,
+        raw_expression_parenthenses: String,
+        raw_expression_variable: String,
+        raw_expression_prefix: String,
 
-    #[test]
-    fn lexer_test_constant() {
-        let test_expression = String::from("3.1415926");
-        let tokens = tokenize(&test_expression);
-        assert_eq!(tokens, vec![String::from("3.1415926")])
+        tokens_whitespace: Vec<String>,
+        tokens_parenthenses: Vec<String>,
+        tokens_variable: Vec<String>,
+        tokens_prefix: Vec<String>,
+
+        expression_whitespace: Vec<String>,
+        expression_parenthenses: Vec<String>,
+        expression_variable: Vec<String>,
+        expression_prefix: Vec<String>,
+
+        result_whitespace: f64,
+        result_parenthenses: f64,
+        result_variable: f64,
+        result_prefix: f64,
+
+        operators: HashMap<char, Box<dyn Fn(f64, f64) -> f64>>,
+        operator_string: String,
+        precidence: HashMap<char, i32>,
+        mnemonics: Vec<(String, String)>,
+    }
+    impl Default for TestExpressions {
+        fn default() -> TestExpressions {
+            TestExpressions {
+                raw_expression_whitespace: String::from(" 1.2/7 - 6 + 3 . 0 *   10   "),
+                raw_expression_parenthenses: String::from("(1-3)/(2+1)"),
+                raw_expression_variable: String::from("2p3+p1/2+3.1(2+1)"),
+                raw_expression_prefix: String::from("sin(3.14159) + 1 - p0"),
+
+                tokens_whitespace: vec![
+                    String::from("1.2"),
+                    String::from("/"),
+                    String::from("7"),
+                    String::from("-"),
+                    String::from("6"),
+                    String::from("+"),
+                    String::from("3.0"),
+                    String::from("*"),
+                    String::from("10"),
+                ],
+                tokens_parenthenses: vec![
+                    String::from("("),
+                    String::from("1"),
+                    String::from("-"),
+                    String::from("3"),
+                    String::from(")"),
+                    String::from("/"),
+                    String::from("("),
+                    String::from("2"),
+                    String::from("+"),
+                    String::from("1"),
+                    String::from(")"),
+                ],
+                tokens_variable: vec![
+                    String::from("2"),
+                    String::from("*"),
+                    String::from("p3"),
+                    String::from("+"),
+                    String::from("p1"),
+                    String::from("/"),
+                    String::from("2"),
+                    String::from("+"),
+                    String::from("3.1"),
+                    String::from("*"),
+                    String::from("("),
+                    String::from("2"),
+                    String::from("+"),
+                    String::from("1"),
+                    String::from(")"),
+                ],
+                tokens_prefix: vec![
+                    String::from("s"),
+                    String::from("("),
+                    String::from("3.14159"),
+                    String::from(")"),
+                    String::from("+"),
+                    String::from("1"),
+                    String::from("-"),
+                    String::from("p0"),
+                ],
+
+                expression_whitespace: vec![
+                    String::from("1.2"),
+                    String::from("7"),
+                    String::from("/"),
+                    String::from("6"),
+                    String::from("-"),
+                    String::from("3.0"),
+                    String::from("10"),
+                    String::from("*"),
+                    String::from("+"),
+                ],
+                expression_parenthenses: vec![
+                    String::from("1"),
+                    String::from("3"),
+                    String::from("-"),
+                    String::from("2"),
+                    String::from("1"),
+                    String::from("+"),
+                    String::from("/"),
+                ],
+                expression_variable: vec![
+                    String::from("2"),
+                    String::from("p3"),
+                    String::from("*"),
+                    String::from("p1"),
+                    String::from("2"),
+                    String::from("/"),
+                    String::from("+"),
+                    String::from("3.1"),
+                    String::from("2"),
+                    String::from("1"),
+                    String::from("+"),
+                    String::from("*"),
+                    String::from("+"),
+                ],
+                expression_prefix: vec![
+                    String::from("3.14159"),
+                    String::from("s"),
+                    String::from("1"),
+                    String::from("+"),
+                    String::from("p0"),
+                    String::from("-"),
+                ],
+
+                result_whitespace: 24.17142857142857,
+                result_parenthenses: -00.6666666666666666,
+                result_variable: 11.8,
+                result_prefix: 1.0,
+
+                operators: HashMap::from([
+                    (
+                        '+',
+                        Box::new(|lhs: f64, rhs: f64| lhs + rhs) as Box<dyn Fn(f64, f64) -> f64>,
+                    ),
+                    ('-', Box::new(|lhs: f64, rhs: f64| lhs - rhs)),
+                    ('/', Box::new(|lhs: f64, rhs: f64| lhs / rhs)),
+                    ('*', Box::new(|lhs: f64, rhs: f64| lhs * rhs)),
+                ]),
+                operator_string: String::from("s^*/-+"),
+                precidence: HashMap::from([
+                    ('+', 1),
+                    ('-', 1),
+                    ('/', 2),
+                    ('*', 2),
+                    ('^', 3),
+                    ('s', 4),
+                ]),
+                mnemonics: vec![(String::from("sin"), String::from("s"))],
+            }
+        }
     }
 
     #[test]
-    fn lexer_test_variable() {
-        let test_expression = String::from("P123");
-        let tokens = tokenize(&test_expression);
-        assert_eq!(tokens, vec![String::from("p123")])
-    }
-
-    #[test]
-    fn lexer_test_operation() {
-        let test_expression = String::from("1.5+3.5/2-100");
-        let tokens = tokenize(&test_expression);
+    fn tokenize_whitespace_test() {
+        let test_expressions: TestExpressions = TestExpressions::default();
         assert_eq!(
-            tokens,
-            vec![
-                String::from("1.5"),
-                String::from("+"),
-                String::from("3.5"),
-                String::from("/"),
-                String::from("2"),
-                String::from("-"),
-                String::from("100")
-            ]
+            tokenize(
+                &test_expressions.raw_expression_whitespace,
+                &test_expressions.operator_string,
+                &test_expressions.mnemonics
+            ),
+            test_expressions.tokens_whitespace
         )
     }
 
     #[test]
-    fn lexer_test_prefix() {
-        let test_expression = String::from("4p");
-        let tokens = tokenize(&test_expression);
+    fn tokenize_parenthenses_test() {
+        let test_expressions: TestExpressions = TestExpressions::default();
         assert_eq!(
-            tokens,
-            vec![String::from("4"), String::from("*"), String::from("p")]
-        )
-    }
-    #[test]
-    fn lexer_test_whitespace() {
-        let test_expression = String::from(" P 1 + 3 . 0 *   10   ");
-        let tokens = tokenize(&test_expression);
-        assert_eq!(
-            tokens,
-            vec![
-                String::from("p1"),
-                String::from("+"),
-                String::from("3.0"),
-                String::from("*"),
-                String::from("10")
-            ]
+            tokenize(
+                &test_expressions.raw_expression_parenthenses,
+                &test_expressions.operator_string,
+                &test_expressions.mnemonics
+            ),
+            test_expressions.tokens_parenthenses
         )
     }
 
     #[test]
-    fn parser_test_operation() {
-        let tokens = vec![
-            String::from("1"),
-            String::from("+"),
-            String::from("2"),
-            String::from("-"),
-            String::from("1"),
-            String::from("*"),
-            String::from("3"),
-        ];
-        let parsed_expression = parse(tokens);
+    fn tokenize_variable_test() {
+        let test_expressions: TestExpressions = TestExpressions::default();
         assert_eq!(
-            parsed_expression,
-            vec![
-                String::from("1"),
-                String::from("2"),
-                String::from("1"),
-                String::from("3"),
-                String::from("*"),
-                String::from("-"),
-                String::from("+")
-            ]
+            tokenize(
+                &test_expressions.raw_expression_variable,
+                &test_expressions.operator_string,
+                &test_expressions.mnemonics
+            ),
+            test_expressions.tokens_variable
+        )
+    }
+    #[test]
+    fn tokenize_prefix_test() {
+        let test_expressions: TestExpressions = TestExpressions::default();
+        assert_eq!(
+            tokenize(
+                &test_expressions.raw_expression_prefix,
+                &test_expressions.operator_string,
+                &test_expressions.mnemonics
+            ),
+            test_expressions.tokens_prefix
         )
     }
 
     #[test]
-    fn interpret_test() {
-        let expression = vec![
-            String::from("1"),
-            String::from("2"),
-            String::from("1"),
-            String::from("3"),
-            String::from("*"),
-            String::from("-"),
-            String::from("+"),
-        ];
-        let result = interpret(expression);
-        assert_eq!(result, 0.0);
+    fn parse_whitespace_test() {
+        let test_expressions: TestExpressions = TestExpressions::default();
+        assert_eq!(
+            parse(
+                test_expressions.tokens_whitespace.clone(),
+                &test_expressions.precidence
+            ),
+            test_expressions.expression_whitespace
+        )
     }
 
     #[test]
-    fn evaluate_test() {
-        let expression = String::from("1 + 2/4 -  5");
-        let result = evaluate(expression);
+    fn parse_parenthenses_test() {
+        let test_expressions: TestExpressions = TestExpressions::default();
+        assert_eq!(
+            parse(
+                test_expressions.tokens_parenthenses.clone(),
+                &test_expressions.precidence
+            ),
+            test_expressions.expression_parenthenses
+        )
+    }
 
-        assert_eq!(result, -3.5);
+    #[test]
+    fn parse_variable_test() {
+        let test_expressions: TestExpressions = TestExpressions::default();
+        assert_eq!(
+            parse(
+                test_expressions.tokens_variable.clone(),
+                &test_expressions.precidence
+            ),
+            test_expressions.expression_variable
+        )
+    }
+
+    #[test]
+    fn parse_prefix_test() {
+        let test_expressions: TestExpressions = TestExpressions::default();
+        assert_eq!(
+            parse(
+                test_expressions.tokens_prefix.clone(),
+                &test_expressions.precidence
+            ),
+            test_expressions.expression_prefix
+        )
+    }
+
+    #[test]
+    fn interpret_whitespace_test() {
+        let test_expressions: TestExpressions = TestExpressions::default();
+        assert_eq!(
+            interpret(
+                &test_expressions.expression_whitespace,
+                &test_expressions.operators
+            ),
+            test_expressions.result_whitespace
+        )
+    }
+
+    #[test]
+    fn interpret_parenthenses_test() {
+        let test_expressions: TestExpressions = TestExpressions::default();
+        assert_eq!(
+            interpret(
+                &test_expressions.expression_parenthenses,
+                &test_expressions.operators
+            ),
+            test_expressions.result_parenthenses
+        )
+    }
+
+    #[test]
+    fn interpret_variable_test() {
+        let test_expressions: TestExpressions = TestExpressions::default();
+        assert_eq!(
+            interpret(
+                &test_expressions.expression_variable,
+                &test_expressions.operators
+            ),
+            test_expressions.result_variable
+        )
+    }
+
+    #[test]
+    fn interpret_prefix_test() {
+        let test_expressions: TestExpressions = TestExpressions::default();
+        assert_eq!(
+            interpret(
+                &test_expressions.expression_prefix,
+                &test_expressions.operators
+            ),
+            test_expressions.result_prefix
+        )
     }
 }
