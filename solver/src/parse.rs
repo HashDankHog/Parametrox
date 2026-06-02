@@ -1,5 +1,17 @@
-use std::collections::HashMap;
+/*
+TODO:
+    - add ability for interpreter to resolve parameters
+    - improve tokenizer error handling
+    - improve test cases
+    - add enum for operators("(", ")", operator, and function)
+    - clean code even more(FAHHHH)
+    - other performance shi tbh
+    - expression simplification(?)
+*/
 
+use std::{cell::RefCell, collections::HashMap};
+use crate::parameter;
+use std::rc::Rc;
 enum TokenState {
     Beginning,
     Constant,
@@ -8,12 +20,9 @@ enum TokenState {
     Parantheses,
 }
 
-pub fn tokenize(
-    raw_expression: &String,
-    operators: &String,
-    mnemonics: &Vec<(String, String)>,
-) -> Vec<String> {
+pub fn tokenize(raw_expression: &String, operators: &String, mnemonics: &Vec<(String, String)>) -> Vec<String> {
     let mut expression = raw_expression.clone(); // clone might make this more inneficient than my original solution 
+    
     for (from, to) in mnemonics {
         expression = expression.replace(from, to);
     }
@@ -39,7 +48,8 @@ pub fn tokenize(
                     }
                     _ => panic!("invalid expression"),
                 }
-            }
+            },
+
             TokenState::Constant => match character {
                 '0'..='9' | '.' => token.push(character),
                 'p' => {
@@ -48,22 +58,28 @@ pub fn tokenize(
 
                     token = String::from("p");
                     token_type = TokenState::Parameter;
-                }
+                },
+
                 character if operators.contains(character) => {
                     tokens.push(token);
                     token = String::from(character);
+
                     token_type = TokenState::Operator;
-                }
+                },
+
                 '(' => {
                     tokens.push(token);
                     tokens.push(String::from("*"));
+
                     token = String::from("(");
                     token_type = TokenState::Operator;
-                }
+                },
+
                 ')' => {
                     tokens.push(token);
                     token = String::from(")");
-                }
+                },
+
                 _ => panic!("invalid expression"),
             },
 
@@ -73,27 +89,33 @@ pub fn tokenize(
                     tokens.push(token);
                     tokens.push(String::from("*"));
                     token = String::from("p");
-                }
+                },
+
                 character if operators.contains(character) => {
                     tokens.push(token);
                     token = String::from(character);
+
                     token_type = TokenState::Operator;
-                }
+                },
+
                 '(' => {
                     tokens.push(token);
                     tokens.push(String::from("*"));
+
                     token = String::from("(");
                     token_type = TokenState::Operator;
-                }
+                },
+
                 ')' => {
                     tokens.push(token);
                     token = String::from(")");
-                }
+                },
+
                 _ => panic!("invalid expression"),
             },
+
             TokenState::Operator => {
                 tokens.push(token);
-
                 token = String::from(character);
 
                 match character {
@@ -102,17 +124,19 @@ pub fn tokenize(
                     '(' => token_type = TokenState::Parantheses,
                     _ => panic!("invalid expression"),
                 }
-            }
+            },
+
             TokenState::Parantheses => {
                 tokens.push(token);
                 token = String::new();
                 token.push(character);
+
                 match character {
                     '0'..='9' => token_type = TokenState::Constant,
                     'p' => token_type = TokenState::Parameter,
                     _ => panic!("invalid expression"),
                 }
-            }
+            },
         }
     }
     tokens.push(token); // pushs last token on stack
@@ -126,11 +150,13 @@ pub fn parse(mut tokens: Vec<String>, precidence: &HashMap<char, i32>) -> Vec<St
     let mut output: Vec<String> = Vec::new();
     let mut operator_stack: Vec<char> = Vec::new();
     let mut operators = String::new();
-    let mut temp: char = ' ';
-    tokens.push(String::from(" "));
+    
     for (operator, _precidence) in precidence {
         operators.push(*operator);
     }
+
+    let mut temp: char = ' ';
+    tokens.push(String::from(" "));
     for token in tokens {
         loop {
             let stack_length = operator_stack.len();
@@ -142,66 +168,75 @@ pub fn parse(mut tokens: Vec<String>, precidence: &HashMap<char, i32>) -> Vec<St
                 break;
             }
 
-            let stack_precidence = precidence
-                .get(&operator_stack[stack_length - 1])
-                .copied()
-                .unwrap_or(0);
+            let stack_precidence = precidence.get(&operator_stack[stack_length - 1]).copied().unwrap_or(0);
             let temp_precidence = precidence.get(&temp).copied().unwrap_or(i32::MAX);
             match temp {
                 ')' if operator_stack[stack_length - 1] == '(' => {
                     operator_stack.pop();
                     temp = ' ';
                     break;
-                }
+                },
+
                 ')' => output.push(String::from(operator_stack.pop().unwrap())),
                 _operator if stack_precidence.abs() > temp_precidence.abs() => {
                     output.push(String::from(operator_stack.pop().unwrap()))
-                }
+                },
+
                 _operator if stack_precidence.abs() == temp_precidence => {
                     output.push(String::from(operator_stack.pop().unwrap()))
-                }
+                },
+
                 ' ' => break,
+
                 _ => {
                     operator_stack.push(temp);
                     temp = ' ';
                     break;
-                }
+                },
             }
         }
+
         match token.chars().next().unwrap_or('0') {
             operator if operators.contains(operator) => temp = operator,
             parenthenses @ ('(' | ')') => temp = parenthenses,
             _ => output.push(token),
         }
     }
+
     output.pop();
+
     operator_stack.reverse();
     for operator in operator_stack {
         output.push(String::from(operator));
     }
+
     output
 }
 
-pub fn interpret(
-    expression: &Vec<String>,
-    operators: &HashMap<char, Box<dyn Fn(f64, f64) -> f64>>,
-) -> f64 {
+pub fn interpret(expression: &Vec<String>, operators: &HashMap<char, Box<dyn Fn(f64, f64) -> f64>>, parameters: &Vec<Rc<RefCell<parameter::Parameter>>>) -> f64 {
     let mut output: Vec<String> = Vec::new();
 
     let mut symbols = String::new();
     for (symbol, _closure) in operators {
         symbols.push(*symbol);
     }
+
     let mut left_hand_side: f64;
     let mut right_hand_side: f64;
+
     for element in expression {
         match element.chars().next().unwrap_or('0') {
             operator if symbols.contains(operator) => {
-                right_hand_side = output.pop().unwrap().parse().unwrap();
-                left_hand_side = output.pop().unwrap().parse().unwrap();
+                right_hand_side = output.pop().unwrap_or(String::from("0")).parse().unwrap();
+                left_hand_side = output.pop().unwrap_or(String::from("0")).parse().unwrap();
                 let value = (operators.get(&operator).unwrap())(left_hand_side, right_hand_side);
                 output.push(value.to_string());
-            }
+            },
+
+            'p' => {
+                let index: usize = element[1..].parse().unwrap_or(0);
+                output.push(parameters[index].borrow().value.to_string());
+            },
             _ => output.push(element.clone()),
         }
     }
@@ -210,7 +245,9 @@ pub fn interpret(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::parameter::Parameter;
+
+use super::*;
     struct TestExpressions {
         raw_expression_whitespace: String,
         raw_expression_parenthenses: String,
@@ -236,6 +273,7 @@ mod tests {
         operator_string: String,
         precidence: HashMap<char, i32>,
         mnemonics: Vec<(String, String)>,
+        parameters: Vec<Rc<RefCell<parameter::Parameter>>>, //the worlds ugliest concrete type
     }
     impl Default for TestExpressions {
         fn default() -> TestExpressions {
@@ -343,14 +381,11 @@ mod tests {
 
                 result_whitespace: 24.17142857142857,
                 result_parenthenses: -00.6666666666666666,
-                result_variable: 11.8,
+                result_variable: 25.3,
                 result_prefix: 1.0,
 
                 operators: HashMap::from([
-                    (
-                        '+',
-                        Box::new(|lhs: f64, rhs: f64| lhs + rhs) as Box<dyn Fn(f64, f64) -> f64>,
-                    ),
+                    ('+', Box::new(|lhs: f64, rhs: f64| lhs + rhs) as Box<dyn Fn(f64, f64) -> f64>),
                     ('-', Box::new(|lhs: f64, rhs: f64| lhs - rhs)),
                     ('/', Box::new(|lhs: f64, rhs: f64| lhs / rhs)),
                     ('*', Box::new(|lhs: f64, rhs: f64| lhs * rhs)),
@@ -361,10 +396,15 @@ mod tests {
                     ('-', 1),
                     ('/', 2),
                     ('*', 2),
-                    ('^', 3),
+                    ('^', -3),
                     ('s', 4),
                 ]),
                 mnemonics: vec![(String::from("sin"), String::from("s"))],
+                parameters: vec![Rc::new(RefCell::new(Parameter{expression: vec![String::from(" ")], value: 8.0})),
+                Rc::new(RefCell::new(Parameter{expression: vec![String::from(" ")], value: 0.0})),
+                Rc::new(RefCell::new(Parameter{expression: vec![String::from(" ")], value: 0.0})),
+                Rc::new(RefCell::new(Parameter{expression: vec![String::from(" ")], value: 8.0})),
+                Rc::new(RefCell::new(Parameter{expression: vec![String::from(" ")], value: 5.0})),]
             }
         }
     }
@@ -474,7 +514,8 @@ mod tests {
         assert_eq!(
             interpret(
                 &test_expressions.expression_whitespace,
-                &test_expressions.operators
+                &test_expressions.operators,
+                &test_expressions.parameters
             ),
             test_expressions.result_whitespace
         )
@@ -486,7 +527,8 @@ mod tests {
         assert_eq!(
             interpret(
                 &test_expressions.expression_parenthenses,
-                &test_expressions.operators
+                &test_expressions.operators,
+                &test_expressions.parameters
             ),
             test_expressions.result_parenthenses
         )
@@ -498,7 +540,8 @@ mod tests {
         assert_eq!(
             interpret(
                 &test_expressions.expression_variable,
-                &test_expressions.operators
+                &test_expressions.operators,
+                &test_expressions.parameters
             ),
             test_expressions.result_variable
         )
@@ -510,7 +553,8 @@ mod tests {
         assert_eq!(
             interpret(
                 &test_expressions.expression_prefix,
-                &test_expressions.operators
+                &test_expressions.operators,
+                &test_expressions.parameters
             ),
             test_expressions.result_prefix
         )
