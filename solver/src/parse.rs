@@ -1,9 +1,8 @@
 /*
 TODO:
-    - add ability for interpreter to resolve parameters
     - improve tokenizer error handling
     - improve test cases
-    - add enum for operators("(", ")", operator, and function)
+    - add enum for operators("(", ")", operator, and function)?
     - clean code even more(FAHHHH)
     - other performance shi tbh
     - expression simplification(?)
@@ -281,7 +280,7 @@ use super::*;
                 raw_expression_whitespace: String::from(" 1.2/7 - 6 + 3 . 0 *   10   "),
                 raw_expression_parenthenses: String::from("(1-3)/(2+1)"),
                 raw_expression_variable: String::from("2p3+p1/2+3.1(2+1)"),
-                raw_expression_prefix: String::from("sin(3.14159) + 1 - p0"),
+                raw_expression_prefix: String::from("sin(3.14159265358979) + 1 - p0"),
 
                 tokens_whitespace: vec![
                     String::from("1.2"),
@@ -327,7 +326,7 @@ use super::*;
                 tokens_prefix: vec![
                     String::from("s"),
                     String::from("("),
-                    String::from("3.14159"),
+                    String::from("3.14159265358979"),
                     String::from(")"),
                     String::from("+"),
                     String::from("1"),
@@ -371,7 +370,7 @@ use super::*;
                     String::from("+"),
                 ],
                 expression_prefix: vec![
-                    String::from("3.14159"),
+                    String::from("3.14159265358979"),
                     String::from("s"),
                     String::from("1"),
                     String::from("+"),
@@ -382,13 +381,15 @@ use super::*;
                 result_whitespace: 24.17142857142857,
                 result_parenthenses: -00.6666666666666666,
                 result_variable: 25.3,
-                result_prefix: 1.0,
+                result_prefix: -6.9999999999999964, //aproaches -7 with more digits of pi
 
                 operators: HashMap::from([
                     ('+', Box::new(|lhs: f64, rhs: f64| lhs + rhs) as Box<dyn Fn(f64, f64) -> f64>),
                     ('-', Box::new(|lhs: f64, rhs: f64| lhs - rhs)),
                     ('/', Box::new(|lhs: f64, rhs: f64| lhs / rhs)),
                     ('*', Box::new(|lhs: f64, rhs: f64| lhs * rhs)),
+                    ('^', Box::new(|lhs: f64, rhs: f64| lhs.powf(rhs))),
+                    ('s', Box::new(|_lhs: f64, rhs: f64| rhs.sin())),
                 ]),
                 operator_string: String::from("s^*/-+"),
                 precidence: HashMap::from([
@@ -400,11 +401,28 @@ use super::*;
                     ('s', 4),
                 ]),
                 mnemonics: vec![(String::from("sin"), String::from("s"))],
-                parameters: vec![Rc::new(RefCell::new(Parameter{expression: vec![String::from(" ")], value: 8.0})),
-                Rc::new(RefCell::new(Parameter{expression: vec![String::from(" ")], value: 0.0})),
-                Rc::new(RefCell::new(Parameter{expression: vec![String::from(" ")], value: 0.0})),
-                Rc::new(RefCell::new(Parameter{expression: vec![String::from(" ")], value: 8.0})),
-                Rc::new(RefCell::new(Parameter{expression: vec![String::from(" ")], value: 5.0})),]
+                parameters: vec![
+                    Rc::new(RefCell::new(Parameter {
+                        expression: vec![String::from(" ")],
+                        value: 8.0,
+                    })),
+                    Rc::new(RefCell::new(Parameter {
+                        expression: vec![String::from(" ")],
+                        value: 0.0,
+                    })),
+                    Rc::new(RefCell::new(Parameter {
+                        expression: vec![String::from(" ")],
+                        value: 0.0,
+                    })),
+                    Rc::new(RefCell::new(Parameter {
+                        expression: vec![String::from(" ")],
+                        value: 8.0,
+                    })),
+                    Rc::new(RefCell::new(Parameter {
+                        expression: vec![String::from(" ")],
+                        value: 5.0,
+                    })),
+                ],
             }
         }
     }
