@@ -234,6 +234,7 @@ pub fn interpret(expression: &Vec<String>, operators: &HashMap<char, Box<dyn Fn(
 
             'p' => {
                 let index: usize = element[1..].parse().unwrap_or(0);
+                parameters[index].borrow_mut().update_value(parameters);
                 output.push(parameters[index].borrow().value.to_string());
             },
             _ => output.push(element.clone()),
