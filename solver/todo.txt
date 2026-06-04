@@ -1,7 +1,16 @@
 TODO:
+    PARSE.RS
+        - Refactor parse
+        - Tokenizing prefixes
+        - Add test cases
+        - Refactor interpret
+        - Clean tokenize
+        - Add stuff
+        - fix Tokenizing for functions(Half done but poor solution)
     MATRIX.RS
         - Augmented Matrices
-        - Enums
+        - Refactor for parameter
+        - Refactor tests
         - Gaussian Elimination
         - Decomposition
         - Parrelalization
@@ -29,11 +38,14 @@ TODO:
     GEOMETRY/SWEEP.RS
         - Sweeping
         - SDF Generation
-    PARAMETER.RS (?)
+    PARAMETER.RS
+        - Parameter sets
+            - Recursive types?
+        - Remove value
         - Mean Squared Error
-        - Constraints
-        - Parameters
+        - Constraints(Half done but needs work and testing)
         - Parametric Functions
+        - Testing testing and more testing
     OPTIMIZE.RS
         - Gradient Descent
         - Newton-Raphsom
