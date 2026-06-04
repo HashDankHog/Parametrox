@@ -121,6 +121,7 @@ pub fn tokenize(raw_expression: &String, operators: &String, mnemonics: &Vec<(St
                     '0'..='9' => token_type = TokenState::Constant,
                     'p' => token_type = TokenState::Parameter,
                     '(' => token_type = TokenState::Parantheses,
+                    character if operators.contains(character) => token_type = TokenState::Operator, //buns ass logic that will allow for so many errors
                     _ => panic!("invalid expression"),
                 }
             },
@@ -133,6 +134,7 @@ pub fn tokenize(raw_expression: &String, operators: &String, mnemonics: &Vec<(St
                 match character {
                     '0'..='9' => token_type = TokenState::Constant,
                     'p' => token_type = TokenState::Parameter,
+                    character if operators.contains(character) => token_type = TokenState::Operator, //buns ass logic that will allow for so many errors
                     _ => panic!("invalid expression"),
                 }
             },
@@ -212,7 +214,7 @@ pub fn parse(mut tokens: Vec<String>, precidence: &HashMap<char, i32>) -> Vec<St
     output
 }
 
-pub fn interpret(expression: &Vec<String>, operators: &HashMap<char, Box<dyn Fn(f64, f64) -> f64>>, parameters: &Vec<Rc<RefCell<parameter::Parameter>>>, depth: u8) -> f64 {
+pub fn interpret(expression: &Vec<String>, operators: &HashMap<char, Box<dyn Fn(f64, f64) -> Vec<String>>>, parameters: &Vec<Rc<RefCell<parameter::Parameter>>>, depth: u8) -> f64 {
     let mut output: Vec<String> = Vec::new();
 
     let mut symbols = String::new();
@@ -229,7 +231,7 @@ pub fn interpret(expression: &Vec<String>, operators: &HashMap<char, Box<dyn Fn(
                 right_hand_side = output.pop().unwrap_or(String::from("0")).parse().unwrap_or(0.0);
                 left_hand_side = output.pop().unwrap_or(String::from("0")).parse().unwrap_or(0.0);
                 let value = (operators.get(&operator).unwrap())(left_hand_side, right_hand_side);
-                output.push(value.to_string());
+                output.extend(value);
             },
 
             'p' => {
@@ -271,7 +273,7 @@ use super::*;
         result_variable: f64,
         result_prefix: f64,
 
-        operators: HashMap<char, Box<dyn Fn(f64, f64) -> f64>>,
+        operators: HashMap<char, Box<dyn Fn(f64, f64) -> Vec<String>>>,
         operator_string: String,
         precidence: HashMap<char, i32>,
         mnemonics: Vec<(String, String)>,
@@ -387,12 +389,14 @@ use super::*;
                 result_prefix: -6.9999999999999964, //aproaches -7 with more digits of pi
 
                 operators: HashMap::from([
-                    ('+', Box::new(|lhs: f64, rhs: f64| lhs + rhs) as Box<dyn Fn(f64, f64) -> f64>),
-                    ('-', Box::new(|lhs: f64, rhs: f64| lhs - rhs)),
-                    ('/', Box::new(|lhs: f64, rhs: f64| lhs / rhs)),
-                    ('*', Box::new(|lhs: f64, rhs: f64| lhs * rhs)),
-                    ('^', Box::new(|lhs: f64, rhs: f64| lhs.powf(rhs))),
-                    ('s', Box::new(|_lhs: f64, rhs: f64| rhs.sin())),
+                    ('+', Box::new(|lhs: f64, rhs: f64| vec![(lhs + rhs).to_string()]) as Box<dyn Fn(f64, f64) -> Vec<String>>),
+                    ('-', Box::new(|lhs: f64, rhs: f64| vec![(lhs - rhs).to_string()])),
+                    ('/', Box::new(|lhs: f64, rhs: f64| vec![(lhs / rhs).to_string()])),
+                    ('*', Box::new(|lhs: f64, rhs: f64| vec![(lhs * rhs).to_string()])),
+                    ('^', Box::new(|lhs: f64, rhs: f64| vec![(lhs.powf(rhs)).to_string()])),
+                    ('s', Box::new(|lhs: f64, rhs: f64| vec![lhs.to_string(), rhs.sin().to_string()])),
+                    ('c', Box::new(|lhs: f64, rhs: f64| vec![lhs.to_string(), rhs.cos().to_string()])),
+                    ('t', Box::new(|lhs: f64, rhs: f64| vec![lhs.to_string(), rhs.tan().to_string()])),
                 ]),
                 operator_string: String::from("s^*/-+"),
                 precidence: HashMap::from([

@@ -26,14 +26,14 @@ fn main() {
 
 
     let operators = HashMap::from([
-                    ('+', Box::new(|lhs: f64, rhs: f64| lhs + rhs) as Box<dyn Fn(f64, f64) -> f64>),
-                    ('-', Box::new(|lhs: f64, rhs: f64| lhs - rhs)),
-                    ('/', Box::new(|lhs: f64, rhs: f64| lhs / rhs)),
-                    ('*', Box::new(|lhs: f64, rhs: f64| lhs * rhs)),
-                    ('^', Box::new(|lhs: f64, rhs: f64| lhs.powf(rhs))),
-                    ('s', Box::new(|_lhs: f64, rhs: f64| rhs.sin())),
-                    ('c', Box::new(|_lhs: f64, rhs: f64| rhs.cos())),
-                    ('t', Box::new(|_lhs: f64, rhs: f64| rhs.tan())),
+                    ('+', Box::new(|lhs: f64, rhs: f64| vec![(lhs + rhs).to_string()]) as Box<dyn Fn(f64, f64) -> Vec<String>>),
+                    ('-', Box::new(|lhs: f64, rhs: f64| vec![(lhs - rhs).to_string()])),
+                    ('/', Box::new(|lhs: f64, rhs: f64| vec![(lhs / rhs).to_string()])),
+                    ('*', Box::new(|lhs: f64, rhs: f64| vec![(lhs * rhs).to_string()])),
+                    ('^', Box::new(|lhs: f64, rhs: f64| vec![(lhs.powf(rhs)).to_string()])),
+                    ('s', Box::new(|lhs: f64, rhs: f64| vec![lhs.to_string(), rhs.sin().to_string()])),
+                    ('c', Box::new(|lhs: f64, rhs: f64| vec![lhs.to_string(), rhs.cos().to_string()])),
+                    ('t', Box::new(|lhs: f64, rhs: f64| vec![lhs.to_string(), rhs.tan().to_string()])),
                 ]);
     loop {
         print!(">> ");
