@@ -18,7 +18,7 @@ impl Parameter {
             ('^', Box::new(|lhs: f64, rhs: f64| lhs.powf(rhs))),
             ('s', Box::new(|_lhs: f64, rhs: f64| rhs.sin())),
         ]);
-        self.value = interpret(&self.expression, &operators, parameters)
+        self.value = interpret(&self.expression, &operators, parameters,1)
         
     }
 }

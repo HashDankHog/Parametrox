@@ -212,7 +212,7 @@ pub fn parse(mut tokens: Vec<String>, precidence: &HashMap<char, i32>) -> Vec<St
     output
 }
 
-pub fn interpret(expression: &Vec<String>, operators: &HashMap<char, Box<dyn Fn(f64, f64) -> f64>>, parameters: &Vec<Rc<RefCell<parameter::Parameter>>>) -> f64 {
+pub fn interpret(expression: &Vec<String>, operators: &HashMap<char, Box<dyn Fn(f64, f64) -> f64>>, parameters: &Vec<Rc<RefCell<parameter::Parameter>>>, depth: u8) -> f64 {
     let mut output: Vec<String> = Vec::new();
 
     let mut symbols = String::new();
@@ -226,15 +226,17 @@ pub fn interpret(expression: &Vec<String>, operators: &HashMap<char, Box<dyn Fn(
     for element in expression {
         match element.chars().next().unwrap_or('0') {
             operator if symbols.contains(operator) => {
-                right_hand_side = output.pop().unwrap_or(String::from("0")).parse().unwrap();
-                left_hand_side = output.pop().unwrap_or(String::from("0")).parse().unwrap();
+                right_hand_side = output.pop().unwrap_or(String::from("0")).parse().unwrap_or(0.0);
+                left_hand_side = output.pop().unwrap_or(String::from("0")).parse().unwrap_or(0.0);
                 let value = (operators.get(&operator).unwrap())(left_hand_side, right_hand_side);
                 output.push(value.to_string());
             },
 
             'p' => {
                 let index: usize = element[1..].parse().unwrap_or(0);
-                parameters[index].borrow_mut().update_value(parameters);
+                if depth == 0 {
+                    parameters[index].borrow_mut().update_value(parameters);
+                }
                 output.push(parameters[index].borrow().value.to_string());
             },
             _ => output.push(element.clone()),
@@ -534,7 +536,8 @@ use super::*;
             interpret(
                 &test_expressions.expression_whitespace,
                 &test_expressions.operators,
-                &test_expressions.parameters
+                &test_expressions.parameters,
+                0
             ),
             test_expressions.result_whitespace
         )
@@ -547,7 +550,8 @@ use super::*;
             interpret(
                 &test_expressions.expression_parenthenses,
                 &test_expressions.operators,
-                &test_expressions.parameters
+                &test_expressions.parameters,
+                0
             ),
             test_expressions.result_parenthenses
         )
@@ -560,7 +564,8 @@ use super::*;
             interpret(
                 &test_expressions.expression_variable,
                 &test_expressions.operators,
-                &test_expressions.parameters
+                &test_expressions.parameters,
+                0
             ),
             test_expressions.result_variable
         )
@@ -573,7 +578,8 @@ use super::*;
             interpret(
                 &test_expressions.expression_prefix,
                 &test_expressions.operators,
-                &test_expressions.parameters
+                &test_expressions.parameters,
+                0
             ),
             test_expressions.result_prefix
         )

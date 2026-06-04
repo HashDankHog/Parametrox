@@ -5,7 +5,7 @@ use std::io::Write;
 fn main() {
     let mut parameters: Vec<Rc<RefCell<Parameter>>> = Vec::new();
     let size: usize = 128;
-    let operator_string = String::from("+-/*^s");
+    let operator_string = String::from("+-/c*t^s");
     for _i in 0..size {
         parameters.push(Rc::new(RefCell::new(Parameter::default())));
     }
@@ -16,8 +16,13 @@ fn main() {
         ('*', 2),
         ('^', -3),
         ('s', 4),
+        ('c', 4),
+        ('t', 4),
     ]);
-    let mnemonics = vec![(String::from("sin"), String::from("s"))];
+    let mnemonics = vec![(String::from("sin"), String::from("s")),
+                                                (String::from("cos"), String::from("c")),
+                                                (String::from("tan"), String::from("t")),
+                                                (String::from("pi"), String::from("3.14159265359879")),];
 
 
     let operators = HashMap::from([
@@ -27,6 +32,8 @@ fn main() {
                     ('*', Box::new(|lhs: f64, rhs: f64| lhs * rhs)),
                     ('^', Box::new(|lhs: f64, rhs: f64| lhs.powf(rhs))),
                     ('s', Box::new(|_lhs: f64, rhs: f64| rhs.sin())),
+                    ('c', Box::new(|_lhs: f64, rhs: f64| rhs.cos())),
+                    ('t', Box::new(|_lhs: f64, rhs: f64| rhs.tan())),
                 ]);
     loop {
         print!(">> ");
@@ -47,7 +54,7 @@ fn main() {
             let expression_tokens = parse::tokenize(&expression_raw, &operator_string, &mnemonics);
             let parsed_expression = parse::parse(expression_tokens, &precidence);
             
-            let value = parse::interpret(&parsed_expression, &operators, &parameters);
+            let value = parse::interpret(&parsed_expression, &operators, &parameters,0);
 
             let index: usize = parameter[1..].parse().unwrap_or(0);
             parameters[index].borrow_mut().expression = parsed_expression;
@@ -55,7 +62,7 @@ fn main() {
         } else {
             let expression_tokens = parse::tokenize(&input, &operator_string, &mnemonics);
             let parsed_expression = parse::parse(expression_tokens, &precidence);
-            let value = parse::interpret(&parsed_expression, &operators, &parameters);
+            let value = parse::interpret(&parsed_expression, &operators, &parameters,0);
             println!("{value}");
         }
 
