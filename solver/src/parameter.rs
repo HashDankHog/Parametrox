@@ -24,7 +24,19 @@ impl Parameter {
         self.value = interpret(&self.expression, &operators, parameters,1)
     }
 
-    
+    pub fn simplify_expression(&mut self) {
+        let operators = HashMap::from([
+                    ('+', Box::new(|lhs: f64, rhs: f64| vec![(lhs + rhs).to_string()]) as Box<dyn Fn(f64, f64) -> Vec<String>>),
+                    ('-', Box::new(|lhs: f64, rhs: f64| vec![(lhs - rhs).to_string()])),
+                    ('/', Box::new(|lhs: f64, rhs: f64| vec![(lhs / rhs).to_string()])),
+                    ('*', Box::new(|lhs: f64, rhs: f64| vec![(lhs * rhs).to_string()])),
+                    ('^', Box::new(|lhs: f64, rhs: f64| vec![(lhs.powf(rhs)).to_string()])),
+                    ('s', Box::new(|lhs: f64, rhs: f64| vec![lhs.to_string(), rhs.sin().to_string()])),
+                    ('c', Box::new(|lhs: f64, rhs: f64| vec![lhs.to_string(), rhs.cos().to_string()])),
+                    ('t', Box::new(|lhs: f64, rhs: f64| vec![lhs.to_string(), rhs.tan().to_string()])),
+                ]);
+        self.expression = simplify(&self.expression, &operators);
+    }
 }
 impl Default for Parameter {
     fn default() -> Self {

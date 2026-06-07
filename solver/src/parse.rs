@@ -216,20 +216,20 @@ pub fn parse(mut tokens: Vec<String>, precidence: &HashMap<char, i32>) -> Vec<St
 
 pub fn interpret(expression: &Vec<String>, operators: &HashMap<char, Box<dyn Fn(f64, f64) -> Vec<String>>>, parameters: &Vec<Rc<RefCell<parameter::Parameter>>>, depth: u8) -> f64 {
     let mut output: Vec<String> = Vec::new();
-
+    
     let mut symbols = String::new();
     for (symbol, _closure) in operators {
         symbols.push(*symbol);
     }
-
     let mut left_hand_side: f64;
     let mut right_hand_side: f64;
 
     for element in expression {
         match element.chars().next().unwrap_or('0') {
-            operator if symbols.contains(operator) => {
+            operator if symbols.contains(operator) && element.len() == 1 => {
                 right_hand_side = output.pop().unwrap_or(String::from("0")).parse().unwrap_or(0.0);
                 left_hand_side = output.pop().unwrap_or(String::from("0")).parse().unwrap_or(0.0);
+                
                 let value = (operators.get(&operator).unwrap())(left_hand_side, right_hand_side);
                 output.extend(value);
             },
@@ -244,12 +244,48 @@ pub fn interpret(expression: &Vec<String>, operators: &HashMap<char, Box<dyn Fn(
             _ => output.push(element.clone()),
         }
     }
+    
     output[0].parse().unwrap()
+}
+
+pub fn simplify(expression: &Vec<String>, operators: &HashMap<char, Box<dyn Fn(f64, f64) -> Vec<String>>>) -> Vec<String> {
+    let mut output: Vec<String> = Vec::new();
+
+    let mut symbols = String::new();
+    for (symbol, _closure) in operators {
+        symbols.push(*symbol);
+    }
+    symbols.push('p');
+    let mut left_hand_side_token: String;
+    let mut right_hand_side_token: String;
+
+    for element in expression {
+        
+        match element.chars().next().unwrap_or('0') {
+            operator if symbols.contains(operator) && element.len() == 1 => {
+                right_hand_side_token = output.pop().unwrap_or(String::from("0"));
+                left_hand_side_token = output.pop().unwrap_or(String::from("0"));
+                if symbols.contains(right_hand_side_token.chars().next().unwrap_or('0')) && right_hand_side_token.len() == 1
+                 ||  symbols.contains(left_hand_side_token.chars().next().unwrap_or('0')) && left_hand_side_token.len() == 1 {
+                    output.push(left_hand_side_token);
+                    output.push(right_hand_side_token);
+                    output.push(element.clone());
+                } else {
+                    let left_hand_side = left_hand_side_token.parse().unwrap_or(0.0);
+                    let right_hand_side = right_hand_side_token.parse().unwrap_or(0.0);
+                    let value = (operators.get(&operator).unwrap())(left_hand_side, right_hand_side);
+                    output.extend(value);
+                }
+            },
+            _ => output.push(element.clone()),
+        }
+    }
+    output
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::parameter::Parameter;
+use crate::parameter::Parameter;
 
 use super::*;
     struct TestExpressions {
@@ -384,7 +420,7 @@ use super::*;
                 ],
 
                 result_whitespace: 24.17142857142857,
-                result_parenthenses: -00.6666666666666666,
+                result_parenthenses: -0.6666666666666666,
                 result_variable: 25.3,
                 result_prefix: -6.9999999999999964, //aproaches -7 with more digits of pi
 
@@ -394,9 +430,18 @@ use super::*;
                     ('/', Box::new(|lhs: f64, rhs: f64| vec![(lhs / rhs).to_string()])),
                     ('*', Box::new(|lhs: f64, rhs: f64| vec![(lhs * rhs).to_string()])),
                     ('^', Box::new(|lhs: f64, rhs: f64| vec![(lhs.powf(rhs)).to_string()])),
-                    ('s', Box::new(|lhs: f64, rhs: f64| vec![lhs.to_string(), rhs.sin().to_string()])),
-                    ('c', Box::new(|lhs: f64, rhs: f64| vec![lhs.to_string(), rhs.cos().to_string()])),
-                    ('t', Box::new(|lhs: f64, rhs: f64| vec![lhs.to_string(), rhs.tan().to_string()])),
+                    ('s', Box::new(|lhs: f64, rhs: f64| match lhs {
+                        0.0 => vec![rhs.sin().to_string()],
+                        _   => vec![lhs.to_string(), rhs.sin().to_string()],
+                    })),
+                    ('c', Box::new(|lhs: f64, rhs: f64| match lhs {
+                        0.0 => vec![rhs.cos().to_string()],
+                        _   => vec![lhs.to_string(), rhs.cos().to_string()],
+                    })),
+                    ('t', Box::new(|lhs: f64, rhs: f64| match lhs {
+                        0.0 => vec![rhs.tan().to_string()],
+                        _   => vec![lhs.to_string(), rhs.tan().to_string()],
+                    })),
                 ]),
                 operator_string: String::from("s^*/-+"),
                 precidence: HashMap::from([
@@ -410,23 +455,23 @@ use super::*;
                 mnemonics: vec![(String::from("sin"), String::from("s"))],
                 parameters: vec![
                     Rc::new(RefCell::new(Parameter {
-                        expression: vec![String::from(" ")],
+                        expression: vec![String::from("8")],
                         value: 8.0,
                     })),
                     Rc::new(RefCell::new(Parameter {
-                        expression: vec![String::from(" ")],
+                        expression: vec![String::from("0")],
                         value: 0.0,
                     })),
                     Rc::new(RefCell::new(Parameter {
-                        expression: vec![String::from(" ")],
+                        expression: vec![String::from("0")],
                         value: 0.0,
                     })),
                     Rc::new(RefCell::new(Parameter {
-                        expression: vec![String::from(" ")],
+                        expression: vec![String::from("8")],
                         value: 8.0,
                     })),
                     Rc::new(RefCell::new(Parameter {
-                        expression: vec![String::from(" ")],
+                        expression: vec![String::from("5")],
                         value: 5.0,
                     })),
                 ],
@@ -587,5 +632,22 @@ use super::*;
             ),
             test_expressions.result_prefix
         )
+    }
+
+    #[test]
+    fn simplify_test() {
+        let test_expressions = TestExpressions::default();
+        let expected_result = vec![
+                    String::from("2"),
+                    String::from("p3"),
+                    String::from("*"),
+                    String::from("p1"),
+                    String::from("2"),
+                    String::from("/"),
+                    String::from("+"),
+                    String::from("9.3"),
+                    String::from("+"),
+                ];
+        assert_eq!(expected_result, simplify(&test_expressions.expression_variable, &test_expressions.operators))
     }
 }
