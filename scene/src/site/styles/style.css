@@ -1,0 +1,91 @@
+* {
+  box-sizing: border-box;
+}
+
+.container {
+  border: 2px solid #5a524c;
+  border-radius: 5px;
+  background-color: #57534f;
+  margin: 0 auto;
+}
+
+.container > div {
+  border: 1px solid #000000;
+  
+  background-color: #ffffff;
+  padding: 1em;
+  color: #000000;
+}
+.viewport {
+  grid-area: mn1;
+}
+.subviewport {
+  grid-area: sd2;
+}
+.ribbon {
+  grid-area: hd1;
+}
+.workspace {
+  grid-area: hd3;
+  position: relative;
+}
+.header {
+  grid-area: hd2;
+}
+.fileview {
+  grid-area: sd1;
+}
+myCanvas {
+  background: #000000;
+}
+.container {
+  display: grid;
+  grid-auto-rows: minmax(45px, auto);
+  grid-template-columns: 16fr;
+  grid-template-areas:
+    "hd1"
+    "mn1"
+    "sd1"
+    "hd3"
+    "sd2"
+    "hd2";
+}
+
+.workspace_buttons {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 130px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  padding: 12px 16px;
+}
+.workspace:hover .workspace_buttons {
+  display: block;
+}
+@media (width >= 0em) {
+  .container {
+    grid-template-columns: repeat(16, 1fr);
+    grid-template-areas:
+      "hd2 hd2 hd2 hd1 hd1 hd1 hd1 hd1 hd1 hd1 hd1 hd1 hd1 hd3 hd3 hd3"
+      "hd2 hd2 hd2 hd1 hd1 hd1 hd1 hd1 hd1 hd1 hd1 hd1 hd1 hd3 hd3 hd3"
+      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
+      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
+      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
+      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
+      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
+      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
+      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
+      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
+      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
+      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
+      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
+      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
+      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
+      "sd2 sd2 sd2 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
+      "sd2 sd2 sd2 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
+      "sd2 sd2 sd2 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
+      "sd2 sd2 sd2 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
+      "sd2 sd2 sd2 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
+      "sd2 sd2 sd2 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1";
+  }
+}

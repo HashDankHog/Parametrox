@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Parametrox</title>
+    <script async src="scripts/main.js"></script>
+    <link href="styles/style.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="container" >
+        <div class="viewport" >
+            viewport
+            <canvas width="1200" height="800" id="myCanvas"></canvas>
+        </div>
+        <div class="ribbon" >
+            ribbon
+        </div>
+        <div class="fileview" >
+            <ul>
+                <li>
+                    folder1
+                    <ul>
+                        file
+                    </ul>
+                </li>
+                <li>
+                    folder2
+                </li>
+            </ul>
+        </div>
+        <div class="subviewport" >
+            sub viewport
+        </div>
+        <div class="workspace" >
+            workspace
+            <div class="workspace_buttons" >
+                <button>Design</button>
+                <button>Sketch</button>
+                <button>Simulate</button>
+                <button>Manufacture</button>
+                <button>Assembly</button>
+                <button>TBA</button>
+            </div>
+        </div>
+        <div class="header" >
+            <button>settings</button>
+            <button>files</button>
+            <button>save</button>
+        </div>
+    </div>
+</body>
+<script>
+var c = document.getElementById("myCanvas");
+var ctx = c.getContext("2d");
+ctx.moveTo(0, 0);
+ctx.lineTo(1200, 800);
+ctx.stroke();
+</script> 
+</html>
