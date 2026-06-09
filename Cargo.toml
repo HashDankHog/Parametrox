@@ -5,6 +5,6 @@ edition = "2024"
 
 [workspace]
 resolver = "3"
-members = ["solver"]
+members = ["solver", "scene"]
 
 [dependencies]
