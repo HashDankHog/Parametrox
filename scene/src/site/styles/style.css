@@ -7,7 +7,6 @@
   border: 2px solid #201d1b;
   border-radius: 5px;
   background-color: #ffffff;
-  
   width: 100vw;
   height: 100vh;
   display: grid;
@@ -23,6 +22,11 @@
   "sv sv sv vp vp vp vp vp vp vp vp vp vp vp vp vp"
   "sv sv sv vp vp vp vp vp vp vp vp vp vp vp vp vp"
   "sv sv sv vp vp vp vp vp vp vp vp vp vp vp vp vp";
+}
+canvas {
+  width: 100%;
+  height: 100%;
+  background-color: #606060;
 }
 .container > div {
   border: 1px solid black;
