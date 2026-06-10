@@ -1,54 +1,34 @@
 * {
   box-sizing: border-box;
+  margin: 0;
 }
 
-.container {
-  border: 2px solid #5a524c;
+.container{
+  border: 2px solid #201d1b;
   border-radius: 5px;
-  background-color: #57534f;
-  margin: 0 auto;
-}
-
-.container > div {
-  border: 1px solid #000000;
-  
   background-color: #ffffff;
-  padding: 1em;
-  color: #000000;
+  
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  grid-template-columns: repeat(16, minmax(0,1fr));
+  grid-template-rows: repeat(9, minmax(0,1fr));
+  grid-template-areas: 
+  "hd hd hd rb rb rb rb rb rb rb rb rb rb wk wk wk"
+  "fv fv fv vp vp vp vp vp vp vp vp vp vp vp vp vp"
+  "fv fv fv vp vp vp vp vp vp vp vp vp vp vp vp vp"
+  "fv fv fv vp vp vp vp vp vp vp vp vp vp vp vp vp"
+  "fv fv fv vp vp vp vp vp vp vp vp vp vp vp vp vp"
+  "fv fv fv vp vp vp vp vp vp vp vp vp vp vp vp vp"
+  "sv sv sv vp vp vp vp vp vp vp vp vp vp vp vp vp"
+  "sv sv sv vp vp vp vp vp vp vp vp vp vp vp vp vp"
+  "sv sv sv vp vp vp vp vp vp vp vp vp vp vp vp vp";
 }
-.viewport {
-  grid-area: mn1;
-}
-.subviewport {
-  grid-area: sd2;
-}
-.ribbon {
-  grid-area: hd1;
-}
-.workspace {
-  grid-area: hd3;
-  position: relative;
-}
-.header {
-  grid-area: hd2;
-}
-.fileview {
-  grid-area: sd1;
+.container > div {
+  border: 1px solid black;
 }
 myCanvas {
   background: #000000;
-}
-.container {
-  display: grid;
-  grid-auto-rows: minmax(45px, auto);
-  grid-template-columns: 16fr;
-  grid-template-areas:
-    "hd1"
-    "mn1"
-    "sd1"
-    "hd3"
-    "sd2"
-    "hd2";
 }
 
 .workspace_buttons {
@@ -62,30 +42,4 @@ myCanvas {
 .workspace:hover .workspace_buttons {
   display: block;
 }
-@media (width >= 0em) {
-  .container {
-    grid-template-columns: repeat(16, 1fr);
-    grid-template-areas:
-      "hd2 hd2 hd2 hd1 hd1 hd1 hd1 hd1 hd1 hd1 hd1 hd1 hd1 hd3 hd3 hd3"
-      "hd2 hd2 hd2 hd1 hd1 hd1 hd1 hd1 hd1 hd1 hd1 hd1 hd1 hd3 hd3 hd3"
-      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
-      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
-      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
-      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
-      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
-      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
-      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
-      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
-      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
-      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
-      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
-      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
-      "sd1 sd1 sd1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
-      "sd2 sd2 sd2 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
-      "sd2 sd2 sd2 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
-      "sd2 sd2 sd2 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
-      "sd2 sd2 sd2 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
-      "sd2 sd2 sd2 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1"
-      "sd2 sd2 sd2 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1 mn1";
-  }
-}
+
