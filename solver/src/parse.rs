@@ -6,6 +6,7 @@ TODO:
     - clean code even more(FAHHHH)
     - other performance shi tbh
     - expression simplification(?)
+    - find a way to set operator as a static variable or something adjactent to a static variable
 */
 
 use std::{cell::RefCell, collections::HashMap};
@@ -268,7 +269,7 @@ pub fn interpret(expression: &Vec<String>,parameters: &Vec<Rc<RefCell<parameter:
     output[0].parse().unwrap()
 }
 
-pub fn simplify(expression: &Vec<String>) -> Vec<String> {
+pub fn simplify(expression: &Vec<String>) -> Vec<String> {   
     let operators= HashMap::from([
                     ('+', Box::new(|lhs: f64, rhs: f64| vec![(lhs + rhs).to_string()]) as Box<dyn Fn(f64, f64) -> Vec<String>>),
                     ('-', Box::new(|lhs: f64, rhs: f64| vec![(lhs - rhs).to_string()])),
