@@ -1,2 +1,1 @@
-PARDOX: UNDER DEVELOPMENT
-CURRENTLY GOING UNDER A FULL REWRITE FROM PYTHON TO RUST
+Shi twin ts not complete come back in a couple months
