@@ -3,6 +3,8 @@
 // NOTE: the rows and colums attributes might be unnesescary, but at the same time I am not sure
 //TODO
 //  - add, in a different file, the ability to round to a certain number of digits
+//  - fix matrix so it is implemented for more than just parameter, ideally parameter and f64, it might be the case that I have to revert all of this code
+//  - bc its too slow which would suck ass and balls
 
 use crate::parameter::Parameter;
 

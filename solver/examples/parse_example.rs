@@ -25,16 +25,7 @@ fn main() {
                                                 (String::from("pi"), String::from("3.14159265359879")),];
 
 
-    let operators = HashMap::from([
-                    ('+', Box::new(|lhs: f64, rhs: f64| vec![(lhs + rhs).to_string()]) as Box<dyn Fn(f64, f64) -> Vec<String>>),
-                    ('-', Box::new(|lhs: f64, rhs: f64| vec![(lhs - rhs).to_string()])),
-                    ('/', Box::new(|lhs: f64, rhs: f64| vec![(lhs / rhs).to_string()])),
-                    ('*', Box::new(|lhs: f64, rhs: f64| vec![(lhs * rhs).to_string()])),
-                    ('^', Box::new(|lhs: f64, rhs: f64| vec![(lhs.powf(rhs)).to_string()])),
-                    ('s', Box::new(|lhs: f64, rhs: f64| vec![lhs.to_string(), rhs.sin().to_string()])),
-                    ('c', Box::new(|lhs: f64, rhs: f64| vec![lhs.to_string(), rhs.cos().to_string()])),
-                    ('t', Box::new(|lhs: f64, rhs: f64| vec![lhs.to_string(), rhs.tan().to_string()])),
-                ]);
+    
     loop {
         print!(">> ");
         io::stdout().flush().unwrap();
@@ -54,7 +45,7 @@ fn main() {
             let expression_tokens = parse::tokenize(&expression_raw, &operator_string, &mnemonics);
             let parsed_expression = parse::parse(expression_tokens, &precidence);
             
-            let value = parse::interpret(&parsed_expression, &operators, &parameters,0);
+            let value = parse::interpret(&parsed_expression, &parameters,0);
 
             let index: usize = parameter[1..].parse().unwrap_or(0);
             parameters[index].borrow_mut().expression = parsed_expression;
@@ -62,7 +53,7 @@ fn main() {
         } else {
             let expression_tokens = parse::tokenize(&input, &operator_string, &mnemonics);
             let parsed_expression = parse::parse(expression_tokens, &precidence);
-            let value = parse::interpret(&parsed_expression, &operators, &parameters,0);
+            let value = parse::interpret(&parsed_expression, &parameters,0);
             println!("{value}");
         }
 

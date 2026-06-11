@@ -214,11 +214,31 @@ pub fn parse(mut tokens: Vec<String>, precidence: &HashMap<char, i32>) -> Vec<St
     output
 }
 
-pub fn interpret(expression: &Vec<String>, operators: &HashMap<char, Box<dyn Fn(f64, f64) -> Vec<String>>>, parameters: &Vec<Rc<RefCell<parameter::Parameter>>>, depth: u8) -> f64 {
+pub fn interpret(expression: &Vec<String>,parameters: &Vec<Rc<RefCell<parameter::Parameter>>>, depth: u8) -> f64 {
+    let operators= HashMap::from([
+                    ('+', Box::new(|lhs: f64, rhs: f64| vec![(lhs + rhs).to_string()]) as Box<dyn Fn(f64, f64) -> Vec<String>>),
+                    ('-', Box::new(|lhs: f64, rhs: f64| vec![(lhs - rhs).to_string()])),
+                    ('/', Box::new(|lhs: f64, rhs: f64| vec![(lhs / rhs).to_string()])),
+                    ('*', Box::new(|lhs: f64, rhs: f64| vec![(lhs * rhs).to_string()])),
+                    ('^', Box::new(|lhs: f64, rhs: f64| vec![(lhs.powf(rhs)).to_string()])),
+                    ('s', Box::new(|lhs: f64, rhs: f64| match lhs {
+                        0.0 => vec![rhs.sin().to_string()],
+                        _   => vec![lhs.to_string(), rhs.sin().to_string()],
+                    })),
+                    ('c', Box::new(|lhs: f64, rhs: f64| match lhs {
+                        0.0 => vec![rhs.cos().to_string()],
+                        _   => vec![lhs.to_string(), rhs.cos().to_string()],
+                    })),
+                    ('t', Box::new(|lhs: f64, rhs: f64| match lhs {
+                        0.0 => vec![rhs.tan().to_string()],
+                        _   => vec![lhs.to_string(), rhs.tan().to_string()],
+                    })),
+                ]);
+    
     let mut output: Vec<String> = Vec::new();
     
     let mut symbols = String::new();
-    for (symbol, _closure) in operators {
+    for (symbol, _closure) in &operators {
         symbols.push(*symbol);
     }
     let mut left_hand_side: f64;
@@ -248,11 +268,30 @@ pub fn interpret(expression: &Vec<String>, operators: &HashMap<char, Box<dyn Fn(
     output[0].parse().unwrap()
 }
 
-pub fn simplify(expression: &Vec<String>, operators: &HashMap<char, Box<dyn Fn(f64, f64) -> Vec<String>>>) -> Vec<String> {
+pub fn simplify(expression: &Vec<String>) -> Vec<String> {
+    let operators= HashMap::from([
+                    ('+', Box::new(|lhs: f64, rhs: f64| vec![(lhs + rhs).to_string()]) as Box<dyn Fn(f64, f64) -> Vec<String>>),
+                    ('-', Box::new(|lhs: f64, rhs: f64| vec![(lhs - rhs).to_string()])),
+                    ('/', Box::new(|lhs: f64, rhs: f64| vec![(lhs / rhs).to_string()])),
+                    ('*', Box::new(|lhs: f64, rhs: f64| vec![(lhs * rhs).to_string()])),
+                    ('^', Box::new(|lhs: f64, rhs: f64| vec![(lhs.powf(rhs)).to_string()])),
+                    ('s', Box::new(|lhs: f64, rhs: f64| match lhs {
+                        0.0 => vec![rhs.sin().to_string()],
+                        _   => vec![lhs.to_string(), rhs.sin().to_string()],
+                    })),
+                    ('c', Box::new(|lhs: f64, rhs: f64| match lhs {
+                        0.0 => vec![rhs.cos().to_string()],
+                        _   => vec![lhs.to_string(), rhs.cos().to_string()],
+                    })),
+                    ('t', Box::new(|lhs: f64, rhs: f64| match lhs {
+                        0.0 => vec![rhs.tan().to_string()],
+                        _   => vec![lhs.to_string(), rhs.tan().to_string()],
+                    })),
+                ]);
     let mut output: Vec<String> = Vec::new();
 
     let mut symbols = String::new();
-    for (symbol, _closure) in operators {
+    for (symbol, _closure) in &operators {
         symbols.push(*symbol);
     }
     symbols.push('p');
@@ -264,9 +303,15 @@ pub fn simplify(expression: &Vec<String>, operators: &HashMap<char, Box<dyn Fn(f
         match element.chars().next().unwrap_or('0') {
             operator if symbols.contains(operator) && element.len() == 1 => {
                 right_hand_side_token = output.pop().unwrap_or(String::from("0"));
+                let right_char = right_hand_side_token.chars().next().unwrap_or('0');
                 left_hand_side_token = output.pop().unwrap_or(String::from("0"));
-                if symbols.contains(right_hand_side_token.chars().next().unwrap_or('0')) && right_hand_side_token.len() == 1
-                 ||  symbols.contains(left_hand_side_token.chars().next().unwrap_or('0')) && left_hand_side_token.len() == 1 {
+                let left_char = left_hand_side_token.chars().next().unwrap_or('0');
+                if symbols.contains(right_char) && right_hand_side_token.len() == 1
+                 ||  symbols.contains(left_char) && left_hand_side_token.len() == 1 {
+                    output.push(left_hand_side_token);
+                    output.push(right_hand_side_token);
+                    output.push(element.clone());
+                } else if right_char == 'p' || left_char == 'p' {
                     output.push(left_hand_side_token);
                     output.push(right_hand_side_token);
                     output.push(element.clone());
@@ -308,8 +353,7 @@ use super::*;
         result_parenthenses: f64,
         result_variable: f64,
         result_prefix: f64,
-
-        operators: HashMap<char, Box<dyn Fn(f64, f64) -> Vec<String>>>,
+ 
         operator_string: String,
         precidence: HashMap<char, i32>,
         mnemonics: Vec<(String, String)>,
@@ -424,25 +468,6 @@ use super::*;
                 result_variable: 25.3,
                 result_prefix: -6.9999999999999964, //aproaches -7 with more digits of pi
 
-                operators: HashMap::from([
-                    ('+', Box::new(|lhs: f64, rhs: f64| vec![(lhs + rhs).to_string()]) as Box<dyn Fn(f64, f64) -> Vec<String>>),
-                    ('-', Box::new(|lhs: f64, rhs: f64| vec![(lhs - rhs).to_string()])),
-                    ('/', Box::new(|lhs: f64, rhs: f64| vec![(lhs / rhs).to_string()])),
-                    ('*', Box::new(|lhs: f64, rhs: f64| vec![(lhs * rhs).to_string()])),
-                    ('^', Box::new(|lhs: f64, rhs: f64| vec![(lhs.powf(rhs)).to_string()])),
-                    ('s', Box::new(|lhs: f64, rhs: f64| match lhs {
-                        0.0 => vec![rhs.sin().to_string()],
-                        _   => vec![lhs.to_string(), rhs.sin().to_string()],
-                    })),
-                    ('c', Box::new(|lhs: f64, rhs: f64| match lhs {
-                        0.0 => vec![rhs.cos().to_string()],
-                        _   => vec![lhs.to_string(), rhs.cos().to_string()],
-                    })),
-                    ('t', Box::new(|lhs: f64, rhs: f64| match lhs {
-                        0.0 => vec![rhs.tan().to_string()],
-                        _   => vec![lhs.to_string(), rhs.tan().to_string()],
-                    })),
-                ]),
                 operator_string: String::from("s^*/-+"),
                 precidence: HashMap::from([
                     ('+', 1),
@@ -583,8 +608,7 @@ use super::*;
         let test_expressions: TestExpressions = TestExpressions::default();
         assert_eq!(
             interpret(
-                &test_expressions.expression_whitespace,
-                &test_expressions.operators,
+                &test_expressions.expression_whitespace,                
                 &test_expressions.parameters,
                 0
             ),
@@ -597,8 +621,7 @@ use super::*;
         let test_expressions: TestExpressions = TestExpressions::default();
         assert_eq!(
             interpret(
-                &test_expressions.expression_parenthenses,
-                &test_expressions.operators,
+                &test_expressions.expression_parenthenses,                
                 &test_expressions.parameters,
                 0
             ),
@@ -611,8 +634,7 @@ use super::*;
         let test_expressions: TestExpressions = TestExpressions::default();
         assert_eq!(
             interpret(
-                &test_expressions.expression_variable,
-                &test_expressions.operators,
+                &test_expressions.expression_variable,               
                 &test_expressions.parameters,
                 0
             ),
@@ -626,7 +648,6 @@ use super::*;
         assert_eq!(
             interpret(
                 &test_expressions.expression_prefix,
-                &test_expressions.operators,
                 &test_expressions.parameters,
                 0
             ),
@@ -648,6 +669,6 @@ use super::*;
                     String::from("9.3"),
                     String::from("+"),
                 ];
-        assert_eq!(expected_result, simplify(&test_expressions.expression_variable, &test_expressions.operators))
+        assert_eq!(expected_result, simplify(&test_expressions.expression_variable))
     }
 }
