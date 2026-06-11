@@ -4,21 +4,19 @@
   "version": "0.1.0",
   "identifier": "com.tauri.dev",
   "build": {
-    "frontendDist": ["scene/src/site/index.html"]
+    "frontendDist": ["scene/src/site"]
   },
   "app": {
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "Welcome to Tauri!",
-        "width": 1600,
-        "height": 900,
-        "resizable": true,
-        "fullscreen": true
+        "title": "test_app",
+        "width": 800,
+        "height": 600
       }
     ],
     "security": {
-      "csp": "default-src 'self'; connect-src ipc: http://ipc.localhost"
+      "csp": null
     }
   },
   "bundle": {
