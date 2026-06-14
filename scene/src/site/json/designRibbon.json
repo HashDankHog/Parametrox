@@ -1,0 +1,31 @@
+{
+    "section": [
+        {
+            "name": "inspect",
+            "item": [
+                {
+                    "name": "measure",
+                    "src": "images/cad/measure.png",
+                    "action": [
+                        "angle",
+                        "distance"
+                    ]
+                },
+                {
+                    "name": "info",
+                    "src": "images/cad/info.png",
+                    "action": [
+                        "info"
+                    ]
+                },
+                {
+                    "name": "parameter",
+                    "src": "images/cad/parameter.png",
+                    "action": [
+                        "view"
+                    ]
+                }
+            ]
+        }
+    ]
+}
