@@ -11,13 +11,20 @@ function populateRibbon(obj) {
         sectionDiv.className = "section";
         sectionDiv.id = section.name;
 
-        
+        const headerDiv = document.createElement("div");
+
+        headerDiv.className = "header";
+        headerDiv.id = section.name+"Header";
+
         const sectionHeader = document.createElement("h2");
         sectionHeader.textContent = section.name;
-    
-        sectionDiv.append(sectionHeader);
+        headerDiv.append(sectionHeader);
+        sectionDiv.append(headerDiv);
 
-        
+        const bottomDiv = document.createElement("div");
+        bottomDiv.className = "bottom";
+        bottomDiv.id = "bottom";
+
         for (const item of section.item) {
             const itemDiv = document.createElement("div");
 
@@ -27,7 +34,7 @@ function populateRibbon(obj) {
             
             const itemImage = document.createElement("img");
             itemImage.src = item.src;
-            itemImage.textContent = item;
+            itemImage.textContent = item.name;
             
             itemDiv.append(itemImage);
 
@@ -38,7 +45,7 @@ function populateRibbon(obj) {
             for (const action of item.action) {
                 const actionButton = document.createElement("button");
 
-                actionButton.className = "action";
+                actionButton.className = "actionButton";
                 actionButton.id = action;
                 
                 actionButton.textContent = action;
@@ -46,8 +53,9 @@ function populateRibbon(obj) {
                 
             }
             itemDiv.append(actionDiv);
-            sectionDiv.append(itemDiv);
+            bottomDiv.append(itemDiv);
         }
+        sectionDiv.append(bottomDiv);
         ribbon.appendChild(sectionDiv);
     }
 }

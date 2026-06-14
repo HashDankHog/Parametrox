@@ -5,7 +5,7 @@
 
 .container{
   border: 2px solid #201d1b;
-  border-radius: 5px;
+  border-radius: 0px;
   background-color: #ffffff;
   width: 100vw;
   height: 100vh;
@@ -31,10 +31,57 @@ canvas {
 .container > div {
   border: 1px solid black;
 }
-myCanvas {
-  background: #000000;
+
+.ribbon{
+  display: flex;
+  justify-content: center;
+}
+.header{
+  flex-grow: 1;
+  text-align: center;
+}
+.bottom{
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.item{
+  flex-grow: 1;
+  text-align: center;
+}
+.section{
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  border: 1px solid black;
+}
+.action{
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 130px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  padding: 12px 16px;
+}
+.item:hover .action {
+  display: block;
 }
 
+h2{
+  text-align: center;
+}
+.workspace {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 .workspace_buttons {
   display: none;
   position: absolute;
