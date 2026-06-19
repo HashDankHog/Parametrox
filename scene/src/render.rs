@@ -1,13 +1,22 @@
 use serde::{Serialize, Deserialize};
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct Color(u8,u8,u8);
+pub struct Color(pub u8,pub u8,pub u8);
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Image {
-    canvas: Vec<Vec<Color>>,
+    pub canvas: Vec<Vec<Color>>,
     width: usize,
     height: usize,
+}
+impl Default for Image {
+    fn default() -> Self {
+        Image { 
+            canvas: vec![vec![Color(0,0,0)]],
+            width:  1,
+            height: 1 
+        }
+    }
 }
 impl From<(usize, usize)> for Image {
     fn from(size: (usize,usize)) -> Self {
@@ -26,7 +35,6 @@ impl Image {
         self.canvas[position.0][position.1]=pixel;
     }
     pub fn to_canvas(&self) -> Vec<u8> {
-        println!("hi");
         let mut image_data = Vec::new();
         for row in 0..self.height {
             for colum in 0..self.width {

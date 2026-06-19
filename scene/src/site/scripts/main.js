@@ -19,6 +19,15 @@ async function update_canvas(){
 }
 
 
+invoke("create_canvas", {width: 1000, height: 1000});
+function draw_rect(top, left){
+    for (let i = top; i < top+100; i+=1){
+        for(let j = left; j < left+100; j+=1){
+            invoke("set_pixel", {row: i, colum: j, c: [255,255,255]});
+        }
+    }
+}
+
 
 
 
@@ -146,7 +155,18 @@ function closeWindow() {
     const a = document.getElementById("window");
     a.style.top = "-450px";
 }
+closeWindow();
 update_canvas();
+let i = 100;
+async function animate() {
+    invoke("clear_canvas");
+    draw_rect(i,i);
+    update_canvas();
+    i +=1;
+    requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+
 document.getElementById("windowClose").addEventListener("click", closeWindow);
 
 
