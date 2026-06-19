@@ -14,7 +14,6 @@ async function update_canvas(){
     for (let i = 0; i < data.length; i += 1) {
         img.data[i] = data[i];
     }
-    console.log("hi");
     ctx.putImageData(img,0,0);
     
 }
@@ -145,8 +144,6 @@ function closeDragElement() {
 
 update_canvas();
 
-for (let i = 0; i < data.length; i += 1) {
-        i=i;
-}
+
 ctx.fillStyle = "rgb(200 0 0)";
 ctx.fillRect(0, 0, 500, 500);
