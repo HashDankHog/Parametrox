@@ -14,7 +14,7 @@ th {
 
 #window{
   background-color: white;
-  width: 350px;
+  width: 450px;
   position:absolute;
   z-index: 9;
 }
@@ -22,7 +22,7 @@ th {
 #windowHeader{
   cursor: move;
 }
-.windowFrame{
+#windowFrame{
   border: none;
   width: 100%;
   height: 100%;
@@ -55,7 +55,6 @@ th {
 canvas {
   width: 100%;
   height: 100%;
-  background-color: #606060;
 }
 .container > div {
   border: 1px solid black;

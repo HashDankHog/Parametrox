@@ -1,3 +1,28 @@
+const { invoke } = window.__TAURI__.core;
+
+var c = document.getElementById("viewport_canvas");
+var ctx = c.getContext("2d");
+ctx.moveTo(0, 0);
+ctx.lineTo(c.getBoundingClientRect().width, c.getBoundingClientRect().height);
+ctx.stroke();
+
+const img = ctx.getImageData(0, 0, c.width, c.height);
+async function update_canvas(){
+    
+    const test = await invoke("update_canvas");
+    const data = new Uint8ClampedArray(test);
+    for (let i = 0; i < data.length; i += 1) {
+        img.data[i] = data[i];
+    }
+    console.log("hi");
+    ctx.putImageData(img,0,0);
+    
+}
+
+
+
+
+
 function resizeIframe(obj) {
     obj.style.height = obj.contentWindow.document.documentElement.scrollHeight + 'px';
 }
@@ -117,3 +142,11 @@ function closeDragElement() {
     document.onmouseup = null;
     document.onmousemove = null;
 }
+
+update_canvas();
+
+for (let i = 0; i < data.length; i += 1) {
+        i=i;
+}
+ctx.fillStyle = "rgb(200 0 0)";
+ctx.fillRect(0, 0, 500, 500);
