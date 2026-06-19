@@ -4,15 +4,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <title>Parametrox</title>
+    <script async src="scripts/add_parameter.js"></script>
     <link href="styles/style.css" rel="stylesheet" />
 </head>
 <body>
     <div class="window1" id="parameter">
         <table>
             <tr id="0">
-                <th class="parameterHeader">P<sub>0</sub></th>
+                <th class="parameterHeader">P<sub class="paramNum">0</sub></th>
                 <td class="parameterExpression"><input></td>
-                <td class="parameterValue"><button>+</button></td>
+                <td class="parameterValue"><button class="addParam" onclick="add_parameter()">+</button></td>
             </tr>
         </table>
     </div>
