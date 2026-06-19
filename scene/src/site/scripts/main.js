@@ -93,6 +93,7 @@ fetch(myRequest)
 
 //code for draggable window, actually buns af and needs to be rewritten
 //entirely
+//TODO: fix
 
 // Make the DIV element draggable:
 dragElement(document.getElementById("window"));
@@ -141,8 +142,12 @@ function closeDragElement() {
     document.onmouseup = null;
     document.onmousemove = null;
 }
-
+function closeWindow() {
+    const a = document.getElementById("window");
+    a.style.top = "-450px";
+}
 update_canvas();
+document.getElementById("windowClose").addEventListener("click", closeWindow);
 
 
 ctx.fillStyle = "rgb(200 0 0)";
