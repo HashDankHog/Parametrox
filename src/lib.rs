@@ -46,9 +46,18 @@ fn set_pixel(row: usize, colum: usize, c: [u8; 3]){
     (*temp)[4*(width*row+colum)+2] = c[2];
     (*temp)[4*(width*row+colum)+3] = 255;
 }
+
+#[tauri::command]
+fn draw_rect(coord:(usize, usize), size: (usize, usize), color: [u8;3]){
+    for row in (coord.1)..(coord.1+size.1) {
+        for colum in (coord.0)..(coord.0+size.0) {
+            set_pixel(row, colum, color);
+        }
+    }
+}
 pub fn run() {
     tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![update_canvas, create_canvas, clear_canvas, set_pixel])
+    .invoke_handler(tauri::generate_handler![update_canvas, create_canvas, clear_canvas, set_pixel, draw_rect])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }

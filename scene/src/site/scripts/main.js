@@ -1,3 +1,9 @@
+/* 
+It turns out that I just needed to move the draw_rect function to its own section
+beforehand each draw_pixel call was taking roughly a millesecond
+but since I was doing so many it added up super quickly
+now it is taking roughly 400ms to run update_canvas and 1ms to run draw_rect which is a huge improvement
+*/
 const { invoke } = window.__TAURI__.core;
 
 var c = document.getElementById("viewport_canvas");
@@ -8,25 +14,18 @@ ctx.stroke();
 
 const img = ctx.getImageData(0, 0, c.width, c.height);
 async function update_canvas(){
-    
     const test = await invoke("update_canvas");
     const data = new Uint8ClampedArray(test);
     for (let i = 0; i < data.length; i += 1) {
         img.data[i] = data[i];
     }
-    ctx.putImageData(img,0,0);
-    
+    ctx.putImageData(img,0,0);  
 }
 
 
 invoke("create_canvas", {width: 1000, height: 1000});
-function draw_rect(top, left){
-    for (let i = top; i < top+100; i+=1){
-        for(let j = left; j < left+100; j+=1){
-            invoke("set_pixel", {row: i, colum: j, c: [255,255,255]});
-        }
-    }
-}
+
+
 
 
 
@@ -160,7 +159,7 @@ update_canvas();
 let i = 100;
 async function animate() {
     invoke("clear_canvas");
-    draw_rect(i,i);
+    invoke("draw_rect", {coord: [i,i], size: [100, 100], color: [255,255,255]});
     update_canvas();
     i +=1;
     requestAnimationFrame(animate);
