@@ -2353,8 +2353,10 @@ dependencies = [
 name = "parametrox"
 version = "0.1.0"
 dependencies = [
+ "scene",
  "serde",
  "serde_json",
+ "solver",
  "tauri",
  "tauri-build",
  "tauri-plugin-opener",
@@ -3145,6 +3147,9 @@ dependencies = [
 [[package]]
 name = "solver"
 version = "0.1.0"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "soup3"
