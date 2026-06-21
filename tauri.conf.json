@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "identifier": "com.tauri.dev",
   "build": {
-    "frontendDist": ["scene/src/site"]
+    "frontendDist": ["app/ui"]
   },
   "app": {
     "withGlobalTauri": true,
@@ -23,11 +23,11 @@
     "active": true,
     "targets": "all",
     "icon": [
-      "scene/icons/32x32.png",
-      "scene/icons/128x128.png",
-      "scene/icons/128x128@2x.png",
-      "scene/icons/icon.icns",
-      "scene/icons/icon.ico"
+      "app/icons/32x32.png",
+      "app/icons/128x128.png",
+      "app/icons/128x128@2x.png",
+      "app/icons/icon.icns",
+      "app/icons/icon.ico"
     ]
   }
 }

@@ -13,6 +13,7 @@ ctx.moveTo(0, 0);
 ctx.lineTo(c.getBoundingClientRect().width, c.getBoundingClientRect().height);
 ctx.stroke();
 
+//TODO: this function can be optimized slightly but I dont want to use the version provided by claude because I believe it goes against my learning goals
 const img = ctx.getImageData(0, 0, c.width, c.height);
 async function update_canvas(){
     const test = await invoke("update_canvas");

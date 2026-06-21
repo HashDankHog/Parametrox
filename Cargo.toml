@@ -6,7 +6,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 
 [workspace]
 resolver = "3"
-members = ["solver", "scene"]
+members = ["solver", "app"]
 
 
 
@@ -16,7 +16,7 @@ tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
-scene = {path = "scene" }
+app = {path = "app" }
 solver = {path = "solver" }
 
 [build-dependencies]
