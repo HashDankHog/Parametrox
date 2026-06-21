@@ -5,6 +5,10 @@ but since I was doing so many it added up super quickly
 now it is taking roughly 400ms to run update_canvas and 1ms to run draw_rect which is a huge improvement,
 which is now all the way down to 1ms
 */
+
+import { populateRibbon } from "./modules/ribbon.js";
+import { updateCanvas } from "./modules/viewport.js";
+import { dragElement } from "./modules/window.js";
 const { invoke } = window.__TAURI__.core;
 
 var c = document.getElementById("viewport_canvas");
@@ -12,17 +16,6 @@ var ctx = c.getContext("2d");
 ctx.moveTo(0, 0);
 ctx.lineTo(c.getBoundingClientRect().width, c.getBoundingClientRect().height);
 ctx.stroke();
-
-//TODO: this function can be optimized slightly but I dont want to use the version provided by claude because I believe it goes against my learning goals
-const img = ctx.getImageData(0, 0, c.width, c.height);
-async function update_canvas(){
-    const test = await invoke("update_canvas");
-    const data = new Uint8ClampedArray(test);
-    for (let i = 0; i < data.length; i += 1) {
-        img.data[i] = data[i];
-    }
-    ctx.putImageData(img,0,0);  
-}
 
 
 invoke("create_canvas", {width: 1000, height: 1000});
@@ -35,62 +28,7 @@ invoke("create_canvas", {width: 1000, height: 1000});
 function resizeIframe(obj) {
     obj.style.height = obj.contentWindow.document.documentElement.scrollHeight + 'px';
 }
-function populateRibbon(obj) {
-    const ribbon = document.querySelector(".ribbon");
-    for (const section of obj.section) {
-        const sectionDiv = document.createElement("div");
 
-        sectionDiv.className = "section";
-        sectionDiv.id = section.name;
-
-        const headerDiv = document.createElement("div");
-
-        headerDiv.className = "header";
-        headerDiv.id = section.name+"Header";
-
-        const sectionHeader = document.createElement("h2");
-        sectionHeader.textContent = section.name;
-        headerDiv.append(sectionHeader);
-        sectionDiv.append(headerDiv);
-
-        const bottomDiv = document.createElement("div");
-        bottomDiv.className = "bottom";
-        bottomDiv.id = "bottom";
-
-        for (const item of section.item) {
-            const itemDiv = document.createElement("div");
-
-            itemDiv.className = "item";
-            itemDiv.id = item.name;
-
-            
-            const itemImage = document.createElement("img");
-            itemImage.src = item.src;
-            itemImage.textContent = item.name;
-            
-            itemDiv.append(itemImage);
-
-            const actionDiv = document.createElement("div");
-
-            actionDiv.className = "action";
-            actionDiv.id = item.name;
-            for (const action of item.action) {
-                const actionButton = document.createElement("button");
-
-                actionButton.className = "actionButton";
-                actionButton.id = action;
-                
-                actionButton.textContent = action;
-                actionDiv.append(actionButton);
-                
-            }
-            itemDiv.append(actionDiv);
-            bottomDiv.append(itemDiv);
-        }
-        sectionDiv.append(bottomDiv);
-        ribbon.appendChild(sectionDiv);
-    }
-}
 
 const myRequest = new Request("json/designRibbon.json");
 
@@ -157,12 +95,12 @@ function closeWindow() {
     a.style.top = "-450px";
 }
 
-update_canvas();
+updateCanvas(ctx);
 let i = 100;
 async function animate() {
     invoke("clear_canvas");
     invoke("draw_rect", {coord: [i,i], size: [100, 100], color: [255,255,255]});
-    update_canvas();
+    updateCanvas(ctx);
     if (i >= 900){
         i = 0;
     }
