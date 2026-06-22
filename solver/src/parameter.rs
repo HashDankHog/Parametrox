@@ -2,10 +2,11 @@ use crate::parse::{interpret, simplify};
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::ops::{Add, Sub, Mul, Div};
-use serde::{Serialize};
 
 
-#[derive(PartialEq, Debug, Clone, Serialize)]
+//TODO: add parameterSet
+
+#[derive(PartialEq, Debug, Clone)]
 pub struct Parameter {
     pub expression: Vec<String>,
     pub value: f64,

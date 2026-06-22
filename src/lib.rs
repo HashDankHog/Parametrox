@@ -10,7 +10,7 @@ use std::sync::{LazyLock, Mutex};
 use tauri::ipc::Response;
 use std::cell::{RefCell};
 use std::rc::Rc;
-use std::collections::HashMap;
+
 
 static SCREEN: LazyLock<Mutex<Vec<u8>>> = LazyLock::new(|| Mutex::new(vec![0]));
 static EMPTY_SCREEN: LazyLock<Vec<u8>> = LazyLock::new(|| {
@@ -31,26 +31,11 @@ static WIDTH: LazyLock<Mutex<usize>> = LazyLock::new(|| Mutex::new(0));
 //TODO: fix
 #[tauri::command]
 fn update_parameter(expressions: Vec<String>) -> Vec<f64> {
-    let mnemonics = vec![(String::from("sin"), String::from("s")),
-                                                (String::from("cos"), String::from("c")),
-                                                (String::from("tan"), String::from("t")),
-                                                (String::from("pi"), String::from("3.14159265359879")),];
-    let operator_string = String::from("+-/c*t^s");
-    let precidence = HashMap::from([
-        ('+', 1),
-        ('-', 1),
-        ('/', 2),
-        ('*', 2),
-        ('^', -3),
-        ('s', 4),
-        ('c', 4),
-        ('t', 4),
-    ]);
     let mut profile = Profile::default();
     for expression in expressions {
-        let tokens= tokenize(&expression, &operator_string, &mnemonics);
+        let tokens= tokenize(&expression);
 
-        let parsed_expression = parse(tokens, &precidence);
+        let parsed_expression = parse(tokens);
         profile.parameters.push(Rc::new(RefCell::new(Parameter{ expression: parsed_expression, value: 0.0})));
     }
     for _ in 0..2 {

@@ -9,9 +9,24 @@ TODO:
     - find a way to set operator as a static variable or something adjactent to a static variable
 */
 
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc, sync::LazyLock};
 use crate::parameter;
 
+static MNEMONICS: [(&str, &str); 4] = [ ("sin", "s"),
+                                        ("cos", "c"),
+                                        ("tan", "t"),
+                                        ("pi", "3.14159265359879")];
+    static OPERATORS: &str = "+-/c*t^s";
+    static PRECIDENCE: LazyLock<HashMap<char, i32>> = LazyLock::new(|| HashMap::from([
+        ('+', 1),
+        ('-', 1),
+        ('/', 2),
+        ('*', 2),
+        ('^', -3),
+        ('s', 4),
+        ('c', 4),
+        ('t', 4),
+    ]));
 enum TokenState {
     Beginning,
     Constant,
@@ -21,10 +36,10 @@ enum TokenState {
 }
 
 
-pub fn tokenize(raw_expression: &String, operators: &String, mnemonics: &Vec<(String, String)>) -> Vec<String> {
+pub fn tokenize(raw_expression: &String) -> Vec<String> {
     let mut expression = raw_expression.clone(); // clone might make this more inneficient than my original solution 
     
-    for (from, to) in mnemonics {
+    for (from, to) in MNEMONICS {
         expression = expression.replace(from, to);
     }
     expression.make_ascii_lowercase();
@@ -42,7 +57,7 @@ pub fn tokenize(raw_expression: &String, operators: &String, mnemonics: &Vec<(St
                     '0'..='9' => token_type = TokenState::Constant,
                     'p' => token_type = TokenState::Parameter,
                     '(' => token_type = TokenState::Parantheses,
-                    character if operators.contains(character) => {
+                    character if OPERATORS.contains(character) => {
                         //inelegant way to handle prefix expressions because it will accept non prefix ones too
                         token = String::from(character);
                         token_type = TokenState::Operator;
@@ -61,7 +76,7 @@ pub fn tokenize(raw_expression: &String, operators: &String, mnemonics: &Vec<(St
                     token_type = TokenState::Parameter;
                 },
 
-                character if operators.contains(character) => {
+                character if OPERATORS.contains(character) => {
                     tokens.push(token);
                     token = String::from(character);
 
@@ -92,7 +107,7 @@ pub fn tokenize(raw_expression: &String, operators: &String, mnemonics: &Vec<(St
                     token = String::from("p");
                 },
 
-                character if operators.contains(character) => {
+                character if OPERATORS.contains(character) => {
                     tokens.push(token);
                     token = String::from(character);
 
@@ -123,7 +138,7 @@ pub fn tokenize(raw_expression: &String, operators: &String, mnemonics: &Vec<(St
                     '0'..='9' => token_type = TokenState::Constant,
                     'p' => token_type = TokenState::Parameter,
                     '(' => token_type = TokenState::Parantheses,
-                    character if operators.contains(character) => token_type = TokenState::Operator, //buns ass logic that will allow for so many errors
+                    character if OPERATORS.contains(character) => token_type = TokenState::Operator, //buns ass logic that will allow for so many errors
                     _ => panic!("invalid expression"),
                 }
             },
@@ -136,7 +151,7 @@ pub fn tokenize(raw_expression: &String, operators: &String, mnemonics: &Vec<(St
                 match character {
                     '0'..='9' => token_type = TokenState::Constant,
                     'p' => token_type = TokenState::Parameter,
-                    character if operators.contains(character) => token_type = TokenState::Operator, //buns ass logic that will allow for so many errors
+                    character if OPERATORS.contains(character) => token_type = TokenState::Operator, //buns ass logic that will allow for so many errors
                     _ => panic!("invalid expression"),
                 }
             },
@@ -149,14 +164,9 @@ pub fn tokenize(raw_expression: &String, operators: &String, mnemonics: &Vec<(St
 //shunting yard algorithm
 //autism reference
 //needs to be refactored again because ts buns
-pub fn parse(mut tokens: Vec<String>, precidence: &HashMap<char, i32>) -> Vec<String> {
+pub fn parse(mut tokens: Vec<String>) -> Vec<String> {
     let mut output: Vec<String> = Vec::new();
     let mut operator_stack: Vec<char> = Vec::new();
-    let mut operators = String::new();
-    
-    for (operator, _precidence) in precidence {
-        operators.push(*operator);
-    }
 
     let mut temp: char = ' ';
     tokens.push(String::from(" "));
@@ -171,8 +181,8 @@ pub fn parse(mut tokens: Vec<String>, precidence: &HashMap<char, i32>) -> Vec<St
                 break;
             }
 
-            let stack_precidence = precidence.get(&operator_stack[stack_length - 1]).copied().unwrap_or(0);
-            let temp_precidence = precidence.get(&temp).copied().unwrap_or(i32::MAX);
+            let stack_precidence = PRECIDENCE.get(&operator_stack[stack_length - 1]).copied().unwrap_or(0);
+            let temp_precidence = PRECIDENCE.get(&temp).copied().unwrap_or(i32::MAX);
             match temp {
                 ')' if operator_stack[stack_length - 1] == '(' => {
                     operator_stack.pop();
@@ -200,7 +210,7 @@ pub fn parse(mut tokens: Vec<String>, precidence: &HashMap<char, i32>) -> Vec<St
         }
 
         match token.chars().next().unwrap_or('0') {
-            operator if operators.contains(operator) => temp = operator,
+            operator if OPERATORS.contains(operator) => temp = operator,
             parenthenses @ ('(' | ')') => temp = parenthenses,
             _ => output.push(token),
         }
@@ -216,6 +226,8 @@ pub fn parse(mut tokens: Vec<String>, precidence: &HashMap<char, i32>) -> Vec<St
     output
 }
 
+
+//TODO: rewrite for parameterSet
 pub fn interpret(expression: &Vec<String>,parameters: &Vec<Rc<RefCell<parameter::Parameter>>>, depth: u8) -> f64 {
     let operators= HashMap::from([
                     ('+', Box::new(|lhs: f64, rhs: f64| vec![(lhs + rhs).to_string()]) as Box<dyn Fn(f64, f64) -> Vec<String>>),
@@ -239,16 +251,12 @@ pub fn interpret(expression: &Vec<String>,parameters: &Vec<Rc<RefCell<parameter:
     
     let mut output: Vec<String> = Vec::new();
     
-    let mut symbols = String::new();
-    for (symbol, _closure) in &operators {
-        symbols.push(*symbol);
-    }
     let mut left_hand_side: f64;
     let mut right_hand_side: f64;
 
     for element in expression {
         match element.chars().next().unwrap_or('0') {
-            operator if symbols.contains(operator) && element.len() == 1 => {
+            operator if OPERATORS.contains(operator) && element.len() == 1 => {
                 right_hand_side = output.pop().unwrap_or(String::from("0")).parse().unwrap_or(0.0);
                 left_hand_side = output.pop().unwrap_or(String::from("0")).parse().unwrap_or(0.0);
                 
@@ -292,24 +300,19 @@ pub fn simplify(expression: &Vec<String>) -> Vec<String> {
                 ]);
     let mut output: Vec<String> = Vec::new();
 
-    let mut symbols = String::new();
-    for (symbol, _closure) in &operators {
-        symbols.push(*symbol);
-    }
-    symbols.push('p');
     let mut left_hand_side_token: String;
     let mut right_hand_side_token: String;
 
     for element in expression {
         
         match element.chars().next().unwrap_or('0') {
-            operator if symbols.contains(operator) && element.len() == 1 => {
+            operator if (OPERATORS.contains(operator) || operator == 'p') && element.len() == 1 => {
                 right_hand_side_token = output.pop().unwrap_or(String::from("0"));
                 let right_char = right_hand_side_token.chars().next().unwrap_or('0');
                 left_hand_side_token = output.pop().unwrap_or(String::from("0"));
                 let left_char = left_hand_side_token.chars().next().unwrap_or('0');
-                if symbols.contains(right_char) && right_hand_side_token.len() == 1
-                 ||  symbols.contains(left_char) && left_hand_side_token.len() == 1 {
+                if OPERATORS.contains(right_char) && right_hand_side_token.len() == 1
+                 ||  OPERATORS.contains(left_char) && left_hand_side_token.len() == 1 {
                     output.push(left_hand_side_token);
                     output.push(right_hand_side_token);
                     output.push(element.clone());
@@ -356,9 +359,7 @@ use super::*;
         result_variable: f64,
         result_prefix: f64,
  
-        operator_string: String,
-        precidence: HashMap<char, i32>,
-        mnemonics: Vec<(String, String)>,
+        
         parameters: Vec<Rc<RefCell<parameter::Parameter>>>, //the worlds ugliest concrete type
     }
     impl Default for TestExpressions {
@@ -470,16 +471,7 @@ use super::*;
                 result_variable: 25.3,
                 result_prefix: -6.9999999999999964, //aproaches -7 with more digits of pi
 
-                operator_string: String::from("s^*/-+"),
-                precidence: HashMap::from([
-                    ('+', 1),
-                    ('-', 1),
-                    ('/', 2),
-                    ('*', 2),
-                    ('^', -3),
-                    ('s', 4),
-                ]),
-                mnemonics: vec![(String::from("sin"), String::from("s"))],
+                
                 parameters: vec![
                     Rc::new(RefCell::new(Parameter {
                         expression: vec![String::from("8")],
@@ -511,9 +503,7 @@ use super::*;
         let test_expressions: TestExpressions = TestExpressions::default();
         assert_eq!(
             tokenize(
-                &test_expressions.raw_expression_whitespace,
-                &test_expressions.operator_string,
-                &test_expressions.mnemonics
+                &test_expressions.raw_expression_whitespace
             ),
             test_expressions.tokens_whitespace
         )
@@ -524,9 +514,7 @@ use super::*;
         let test_expressions: TestExpressions = TestExpressions::default();
         assert_eq!(
             tokenize(
-                &test_expressions.raw_expression_parenthenses,
-                &test_expressions.operator_string,
-                &test_expressions.mnemonics
+                &test_expressions.raw_expression_parenthenses
             ),
             test_expressions.tokens_parenthenses
         )
@@ -535,74 +523,36 @@ use super::*;
     #[test]
     fn tokenize_variable_test() {
         let test_expressions: TestExpressions = TestExpressions::default();
-        assert_eq!(
-            tokenize(
-                &test_expressions.raw_expression_variable,
-                &test_expressions.operator_string,
-                &test_expressions.mnemonics
-            ),
-            test_expressions.tokens_variable
-        )
+        assert_eq!(tokenize(&test_expressions.raw_expression_variable),test_expressions.tokens_variable)
     }
     #[test]
     fn tokenize_prefix_test() {
         let test_expressions: TestExpressions = TestExpressions::default();
-        assert_eq!(
-            tokenize(
-                &test_expressions.raw_expression_prefix,
-                &test_expressions.operator_string,
-                &test_expressions.mnemonics
-            ),
-            test_expressions.tokens_prefix
-        )
+        assert_eq!(tokenize(&test_expressions.raw_expression_prefix),test_expressions.tokens_prefix)
     }
 
     #[test]
     fn parse_whitespace_test() {
         let test_expressions: TestExpressions = TestExpressions::default();
-        assert_eq!(
-            parse(
-                test_expressions.tokens_whitespace.clone(),
-                &test_expressions.precidence
-            ),
-            test_expressions.expression_whitespace
-        )
+        assert_eq!(parse(test_expressions.tokens_whitespace.clone()),test_expressions.expression_whitespace)
     }
 
     #[test]
     fn parse_parenthenses_test() {
         let test_expressions: TestExpressions = TestExpressions::default();
-        assert_eq!(
-            parse(
-                test_expressions.tokens_parenthenses.clone(),
-                &test_expressions.precidence
-            ),
-            test_expressions.expression_parenthenses
-        )
+        assert_eq!(parse(test_expressions.tokens_parenthenses.clone()),test_expressions.expression_parenthenses)
     }
 
     #[test]
     fn parse_variable_test() {
         let test_expressions: TestExpressions = TestExpressions::default();
-        assert_eq!(
-            parse(
-                test_expressions.tokens_variable.clone(),
-                &test_expressions.precidence
-            ),
-            test_expressions.expression_variable
-        )
+        assert_eq!(parse(test_expressions.tokens_variable.clone()),test_expressions.expression_variable)
     }
 
     #[test]
     fn parse_prefix_test() {
         let test_expressions: TestExpressions = TestExpressions::default();
-        assert_eq!(
-            parse(
-                test_expressions.tokens_prefix.clone(),
-                &test_expressions.precidence
-            ),
-            test_expressions.expression_prefix
-        )
+        assert_eq!(parse(test_expressions.tokens_prefix.clone()),test_expressions.expression_prefix)
     }
 
     #[test]

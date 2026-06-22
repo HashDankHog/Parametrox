@@ -23,7 +23,12 @@ async function update() {
     var expressions = [];
     const inputFields = document.getElementsByClassName("expression");
     for (let i = 0; i < inputFields.length; i+= 1) {
-        expressions.push(inputFields[i].value);
+        if (inputFields[i].value != "") {
+            
+            expressions.push(inputFields[i].value);
+        } else {
+            expressions.push("0")
+        }
     }
     var values = Array.from(await invoke("update_parameter", {expressions: expressions}));
     var parameter_values = document.getElementsByClassName("value");
