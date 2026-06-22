@@ -9,9 +9,9 @@ TODO:
     - find a way to set operator as a static variable or something adjactent to a static variable
 */
 
-use std::{cell::RefCell, collections::HashMap};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 use crate::parameter;
-use std::rc::Rc;
+
 enum TokenState {
     Beginning,
     Constant,
@@ -19,6 +19,7 @@ enum TokenState {
     Operator,
     Parantheses,
 }
+
 
 pub fn tokenize(raw_expression: &String, operators: &String, mnemonics: &Vec<(String, String)>) -> Vec<String> {
     let mut expression = raw_expression.clone(); // clone might make this more inneficient than my original solution 

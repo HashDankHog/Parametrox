@@ -1,4 +1,6 @@
-parameter_num=0;
+const { invoke } = window.parent.__TAURI__.core;
+
+var parameter_num=0;
 function add_parameter() {
     const row = document.createElement("tr");
     
@@ -15,3 +17,19 @@ function add_parameter() {
 
     body.append(row);
 }
+
+
+async function update() {
+    var expressions = [];
+    const inputFields = document.getElementsByClassName("expression");
+    for (let i = 0; i < inputFields.length; i+= 1) {
+        expressions.push(inputFields[i].value);
+    }
+    var values = Array.from(await invoke("update_parameter", {expressions: expressions}));
+    var parameter_values = document.getElementsByClassName("value");
+    for (let i = 0; i < values.length; i+= 1) {
+        parameter_values[i].innerHTML = String(values[i]);
+    }
+}
+
+document.getElementById("update").addEventListener("click", update);

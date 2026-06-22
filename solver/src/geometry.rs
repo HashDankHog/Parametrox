@@ -3,12 +3,18 @@
 //AKA planes, spheres, distances, segments/lines, intersections, and other things ig idk
 use crate::parameter::Parameter;
 use std::{rc::Rc, cell::RefCell};
+use serde::{Serialize};
 
+#[derive(Serialize)]
+pub struct Segment(Parameter, Parameter);
+
+#[derive(Serialize)]
 pub struct Profile {
     pub parameters: Vec<Rc<RefCell<Parameter>>>,
     pub indices: Vec<usize>,
 }
-pub struct Segment(Parameter, Parameter);
+
+
 impl Default for Profile {
     fn default() -> Self {
         Profile {
@@ -39,5 +45,6 @@ impl Profile {
 
         (x,y)
     }
+    
 }
 

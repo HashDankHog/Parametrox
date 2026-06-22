@@ -8,7 +8,7 @@ which is now all the way down to 1ms
 
 import { populateRibbon } from "./modules/ribbon.js";
 import { updateCanvas } from "./modules/viewport.js";
-import { dragElement } from "./modules/window.js";
+//import { dragElement } from "./modules/window.js";
 const { invoke } = window.__TAURI__.core;
 
 var c = document.getElementById("viewport_canvas");
