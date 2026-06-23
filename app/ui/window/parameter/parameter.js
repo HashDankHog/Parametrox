@@ -13,6 +13,7 @@ function add_parameter() {
     document.querySelector(".addParam").replaceWith(value);
     parameter_num++;
     row.id=String(parameter_num);
+    row.className="parameter";
     row.querySelector(".paramNum").textContent=String(parameter_num);
 
     body.append(row);
