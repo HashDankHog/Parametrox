@@ -27,6 +27,41 @@ static EMPTY_SCREEN: LazyLock<Vec<u8>> = LazyLock::new(|| {
 static HEIGHT: LazyLock<Mutex<usize>> = LazyLock::new(|| Mutex::new(0));
 static WIDTH: LazyLock<Mutex<usize>> = LazyLock::new(|| Mutex::new(0));
 
+static SEGMENTS: LazyLock<Mutex<Vec<usize>>> = LazyLock::new(|| Mutex::new(Vec::new()));
+
+#[tauri::command]
+fn add_segment(position: usize) {
+    (*SEGMENTS.lock().unwrap()).push(position);
+}
+
+#[tauri::command]
+fn plot(segment: usize, expressions: Vec<String>, color: [u8;3]){
+    let mut profile = Profile::default();
+    for expression in expressions {
+        let tokens= tokenize(&expression);
+
+        let parsed_expression = parse(tokens);
+        profile.parameters.push(Rc::new(RefCell::new(Parameter{ expression: parsed_expression, value: 0.0})));
+    }
+    for t in 0..1000 {
+        let t_flt = f64::from(t)/1000.0;
+        profile.parameters[0].borrow_mut().expression=vec![t_flt.to_string()];
+        profile.parameters[0].borrow_mut().value=t_flt;
+        for _ in 0..2 {
+            for parameter in &profile.parameters {
+                parameter.borrow_mut().update_value(&profile.parameters);
+            }
+        }
+        let index = (*SEGMENTS.lock().unwrap())[segment];
+
+        profile.parameters[index].borrow_mut().update_value(&profile.parameters);
+        profile.parameters[index+1].borrow_mut().update_value(&profile.parameters);
+        let x = profile.parameters[index].borrow().value;
+        let y = profile.parameters[index+1].borrow().value;
+        set_pixel(x as usize, y as usize, color);
+    }
+}
+
 //this function is a complete and utter shit show
 //TODO: fix
 #[tauri::command]
@@ -90,7 +125,10 @@ fn draw_rect(coord:(usize, usize), size: (usize, usize), color: [u8;3]){
 }
 pub fn run() {
     tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![update_canvas, create_canvas, clear_canvas, set_pixel, draw_rect, update_parameter])
+    .invoke_handler(tauri::generate_handler![
+        update_canvas, create_canvas, clear_canvas, 
+        set_pixel, draw_rect, update_parameter,
+        add_segment, plot])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }

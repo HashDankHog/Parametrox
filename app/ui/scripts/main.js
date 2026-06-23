@@ -98,7 +98,7 @@ function closeWindow() {
 updateCanvas(ctx);
 let i = 100;
 async function animate() {
-    invoke("clear_canvas");
+    
     invoke("draw_rect", {coord: [i,i], size: [100, 100], color: [255,255,255]});
     updateCanvas(ctx);
     if (i >= 900){
@@ -107,10 +107,16 @@ async function animate() {
     i +=1;
     requestAnimationFrame(animate);
 }
-requestAnimationFrame(animate);
+//requestAnimationFrame(animate);
+
+function plotToCanvas(){
+    invoke("clear_canvas");
+    document.getElementById("windowFrame").contentWindow.plot();
+    updateCanvas(ctx);
+}
 
 document.getElementById("windowClose").addEventListener("click", closeWindow);
-
+document.getElementById("plot").addEventListener("click", () => requestAnimationFrame(plotToCanvas));
 
 ctx.fillStyle = "rgb(200 0 0)";
 ctx.fillRect(0, 0, 500, 500);
