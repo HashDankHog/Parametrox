@@ -43,8 +43,12 @@ fn plot(segment: usize, expressions: Vec<String>, color: [u8;3]){
         let parsed_expression = parse(tokens);
         profile.parameters.push(Rc::new(RefCell::new(Parameter{ expression: parsed_expression, value: 0.0})));
     }
-    for t in 0..1000 {
-        let t_flt = f64::from(t)/1000.0;
+    let mut x_0 = 0.0;
+    let mut y_0 = 0.0;
+    
+    let steps = 100;
+    for t in 0..(steps+1) {
+        let t_flt = (t as f64)/(steps as f64);
         profile.parameters[0].borrow_mut().expression=vec![t_flt.to_string()];
         profile.parameters[0].borrow_mut().value=t_flt;
         for _ in 0..2 {
@@ -58,7 +62,35 @@ fn plot(segment: usize, expressions: Vec<String>, color: [u8;3]){
         profile.parameters[index+1].borrow_mut().update_value(&profile.parameters);
         let x = profile.parameters[index].borrow().value;
         let y = profile.parameters[index+1].borrow().value;
-        set_pixel(x as usize, y as usize, color);
+        if t_flt > 0.0 {
+            draw_line((x_0,y_0), (x,y), color);
+        }
+
+        x_0 = x;
+        y_0 = y;
+    }
+}
+
+//TODO: add thickness
+fn draw_line(pos_0: (f64,f64), pos_1: (f64,f64), color: [u8;3]) {
+    let mut dx = pos_1.0 - pos_0.0;
+    let mut dy = pos_1.1 - pos_0.1;
+    let step;
+    let scale = 2.0;
+    if dx.abs() > dy.abs() {
+        step = dx.abs() * scale;
+    } else {
+        step = dy.abs() * scale;
+    }
+    dx /= step;
+    dy /= step;
+
+    let mut x = pos_0.0;
+    let mut y = pos_0.1;
+    for _ in 0..(step as i32) {
+        set_pixel(x.round() as usize, y.round() as usize, color);
+        x += dx;
+        y += dy;
     }
 }
 
