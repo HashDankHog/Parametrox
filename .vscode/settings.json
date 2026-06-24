@@ -1,0 +1,6 @@
+{
+    "files.exclude": {
+        "**/gen": true,
+        "**/target": true
+    }
+}

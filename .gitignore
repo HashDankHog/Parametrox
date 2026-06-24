@@ -1,3 +1,2 @@
-/target
-/solver/target
-/.vscode
+**/target
+**/gen
