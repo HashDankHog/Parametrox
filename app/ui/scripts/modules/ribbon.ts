@@ -1,5 +1,5 @@
-export function populateRibbon(obj) {
-    const ribbon = document.querySelector(".ribbon");
+export function populateRibbon(obj: any) {
+    const ribbon: any = document.querySelector(".ribbon");
     for (const section of obj.section) {
         const sectionDiv = document.createElement("div");
 

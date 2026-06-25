@@ -9,9 +9,10 @@ which is now all the way down to 1ms
 import { populateRibbon } from "./modules/ribbon.ts";
 import { updateCanvas } from "./modules/viewport.ts";
 //import { dragElement } from "./modules/window.js";
-const { invoke } = window.__TAURI__.core;
+const thismightbetheworstlineofcodeiveeverwriten: any = window;
+const { invoke } = thismightbetheworstlineofcodeiveeverwriten.__TAURI__.core;
 
-var c = document.getElementById("viewport_canvas");
+var c: any = document.getElementById("viewport_canvas");
 var ctx = c.getContext("2d");
 ctx.moveTo(0, 0);
 ctx.lineTo(c.getBoundingClientRect().width, c.getBoundingClientRect().height);
@@ -25,7 +26,7 @@ invoke("create_canvas", {width: 1000, height: 1000});
 
 
 
-function resizeIframe(obj) {
+function resizeIframe(obj: any) {
     obj.style.height = obj.contentWindow.document.documentElement.scrollHeight + 'px';
 }
 
@@ -46,24 +47,24 @@ fetch(myRequest)
 // Make the DIV element draggable:
 dragElement(document.getElementById("window"));
 var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-var elmnt=document.getElementById("windowHeader");
-var win = document.getElementById("window");
+var elmnt: any =document.getElementById("windowHeader");
+var win: any = document.getElementById("window");
 elmnt.style.top="0px";
 elmnt.style.left="0px";
 win.style.top="0px";
 win.style.left="0px";
-function dragElement(elmnt) {
+function dragElement(elmnt: any) {
     const body = document.querySelector('body');
     if (document.getElementById(elmnt.className + "Header")) {
         // if present, the header is where you move the DIV from:
-        const header = document.getElementById(elmnt.className + "Header");
+        const header: any = document.getElementById(elmnt.className + "Header");
         header.addEventListener("onmousedown", dragMouseDown);
     } else {
         // otherwise, move the DIV from anywhere inside the DIV:
         elmnt.onmousedown = dragMouseDown;
     }
 }
-function dragMouseDown(evt) {
+function dragMouseDown(evt: any) {
     // get the mouse cursor position at startup:
     pos3 = evt.clientX;
     pos4 = evt.clientY;
@@ -72,7 +73,7 @@ function dragMouseDown(evt) {
     document.onmousemove = elementDrag;
 }
 
-function elementDrag(evt) {
+function elementDrag(evt: any) {
     // calculate the new cursor position:
     pos1 = pos3 - evt.clientX;
     pos2 = pos4 - evt.clientY;
@@ -91,7 +92,7 @@ function closeDragElement() {
     document.onmousemove = null;
 }
 function closeWindow() {
-    const a = document.getElementById("window");
+    const a: any = document.getElementById("window");
     a.style.top = "-450px";
 }
 
@@ -111,12 +112,14 @@ async function animate() {
 
 function plotToCanvas(){
     invoke("clear_canvas");
-    document.getElementById("windowFrame").contentWindow.plot();
+    const windowFrame: any = document.getElementById("windowFrame");
+    windowFrame.contentWindow.plot();
     updateCanvas(ctx);
 }
-
-document.getElementById("windowClose").addEventListener("click", closeWindow);
-document.getElementById("plot").addEventListener("click", () => requestAnimationFrame(plotToCanvas));
+const windowClose: any = document.getElementById("windowClose");
+const plot: any = document.getElementById("plot");
+windowClose.addEventListener("click", closeWindow);
+plot.addEventListener("click", () => requestAnimationFrame(plotToCanvas));
 
 ctx.fillStyle = "rgb(200 0 0)";
 ctx.fillRect(0, 0, 500, 500);

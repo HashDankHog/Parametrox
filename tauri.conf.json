@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "identifier": "com.tauri.dev",
   "build": {
-    "beforeDevCommand": "tsc",
-    "beforeBuildCommand": "tsc",
+    "beforeDevCommand": "tsc -p parametrox",
+    "beforeBuildCommand": "tsc -p parametrox",
     "frontendDist": ["app/ui"]
   },
   "app": {
