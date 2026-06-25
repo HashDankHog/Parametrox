@@ -6,8 +6,8 @@ now it is taking roughly 400ms to run update_canvas and 1ms to run draw_rect whi
 which is now all the way down to 1ms
 */
 
-import { populateRibbon } from "./modules/ribbon.js";
-import { updateCanvas } from "./modules/viewport.js";
+import { populateRibbon } from "./modules/ribbon.ts";
+import { updateCanvas } from "./modules/viewport.ts";
 //import { dragElement } from "./modules/window.js";
 const { invoke } = window.__TAURI__.core;
 

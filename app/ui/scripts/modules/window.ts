@@ -1,6 +1,6 @@
 //TODO: FIX
 //this doesnt export properly, I basically just need to rewrite this w3school mess of a program
-
+/*
 var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
 export function dragElement(elmnt) {
     const body = document.querySelector('body');
@@ -45,3 +45,4 @@ export function closeWindow() {
     const a = document.getElementById("window");
     a.style.top = "-450px";
 }
+*/
