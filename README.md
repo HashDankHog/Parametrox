@@ -35,4 +35,9 @@ the value of the expression being printed eg. (2.75)
 <h1>Frontend</h1>
 make sure you sure you are in the root directory of the crate, and run
 <code> cargo run</code>
-currently no interactivity is available because javascript sucks and tauri is poorly documented
+<p>this software is in pre pre alpha so when trying to use this just know its going to suck.
+the window with a table contains all your parameters that you will use to plot things. p0 is a special variable and its input shouldnt be typed in
+click that add segment button and two new parameters will be added, these two new parameters correspond to the x and y values of a paramtric function where
+p0 is the input parameter. input the expression you want to plot and then hit the plot button. p0 goes from a range of 0 to 1
+you can add other parameters for things like constraints too or you can add other segments. just keep in mind that it will crash if you type something in wrong
+and its just a buggy pos rn</p>
